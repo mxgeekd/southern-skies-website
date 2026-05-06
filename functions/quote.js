@@ -1,17 +1,47 @@
-export async function onRequestGet() {
-  return new Response("Quote function is live", { status: 200 });
-}
 export async function onRequestPost(context) {
   const { request, env } = context;
 
   try {
     const formData = await request.formData();
 
-    const name = formData.get("name") || "";
-    const phone = formData.get("phone") || "";
-    const location = formData.get("location") || "";
-    const service = formData.get("service") || "";
-    const details = formData.get("details") || "";
+    const turnstileToken = formData.get("cf-turnstile-response");
+    const ip = request.headers.get("CF-Connecting-IP");
+
+    if (!turnstileToken) {
+      return new Response("Verification missing. Please try again.", { status: 403 });
+    }
+
+    const turnstileFormData = new FormData();
+    turnstileFormData.append("secret", env.TURNSTILE_SECRET_KEY);
+    turnstileFormData.append("response", turnstileToken);
+
+    if (ip) {
+      turnstileFormData.append("remoteip", ip);
+    }
+
+    const turnstileResult = await fetch(
+      "https://challenges.cloudflare.com/turnstile/v0/siteverify",
+      {
+        method: "POST",
+        body: turnstileFormData
+      }
+    );
+
+    const turnstileOutcome = await turnstileResult.json();
+
+    if (!turnstileOutcome.success) {
+      return new Response("Verification failed. Please try again.", { status: 403 });
+    }
+
+    const name = String(formData.get("name") || "").trim();
+    const phone = String(formData.get("phone") || "").trim();
+    const location = String(formData.get("location") || "").trim();
+    const service = String(formData.get("service") || "").trim();
+    const details = String(formData.get("details") || "").trim();
+
+    if (!name || !phone || !location || !details) {
+      return new Response("Missing required fields.", { status: 400 });
+    }
 
     const message = `
 New quote request from Southern Skies Agritech website
@@ -33,9 +63,8 @@ ${details}
       },
       body: JSON.stringify({
         from: "Southern Skies Agritech <website@southernskiesagritech.com.au>",
-        // to: ["mxgeekd@gmail.com"],
-        //from: "Southern Skies Agritech <onboarding@resend.dev>",
         to: ["info@southernskiesagritech.com.au"],
+        reply_to: "info@southernskiesagritech.com.au",
         subject: "New quote request - Southern Skies Agritech",
         text: message
       })
