@@ -129,15 +129,15 @@
       <form class="quote-form" method="POST" action="/quote">
         <label>
           Name
-          <input type="text" name="name" placeholder="Your name" />
+          <input type="text" name="name" placeholder="Your name" required />
         </label>
         <label>
           Phone
-          <input type="tel" name="phone" placeholder="Best contact number" />
+          <input type="tel" name="phone" placeholder="Best contact number" required pattern="[0-9\s+]{8,15}"/>
         </label>
         <label>
           Location / property
-          <input type="text" name="location" placeholder="Town or property location" />
+          <input type="text" name="location" placeholder="Town or property location" required />
         </label>
         <label>
           Service required
@@ -150,7 +150,7 @@
         </label>
         <label class="full">
           Job details
-          <textarea name="details" rows="5" placeholder="Approx hectares, target weeds/crop, timing, notes"></textarea>
+          <textarea name="details" rows="5" placeholder="Approx hectares, target weeds/crop, timing, notes" required></textarea>
         </label>
         <div class="cf-turnstile" data-sitekey="0x4AAAAAADJ-eZs9OvDN2j5-"></div>
         <button type="submit">Submit request</button>
