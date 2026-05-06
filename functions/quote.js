@@ -1,3 +1,6 @@
+export async function onRequestGet() {
+  return new Response("Quote function is live", { status: 200 });
+}
 export async function onRequestPost(context) {
   const { request, env } = context;
 
