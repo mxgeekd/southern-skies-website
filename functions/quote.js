@@ -32,7 +32,7 @@ ${details}
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        from: "Southern Skies Website <website@southernskiesagritech.com.au>",
+        from: "Southern Skies Agritech <onboarding@resend.dev>",
         to: ["info@southernskiesagritech.com.au"],
         subject: "New quote request - Southern Skies Agritech",
         text: message
