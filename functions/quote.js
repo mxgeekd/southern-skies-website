@@ -33,9 +33,9 @@ ${details}
       },
       body: JSON.stringify({
         from: "Southern Skies Agritech <website@southernskiesagritech.com.au>",
-        to: ["mxgeekd@gmail.com"],
+        // to: ["mxgeekd@gmail.com"],
         //from: "Southern Skies Agritech <onboarding@resend.dev>",
-        // to: ["info@southernskiesagritech.com.au"],
+        to: ["info@southernskiesagritech.com.au"],
         subject: "New quote request - Southern Skies Agritech",
         text: message
       })
