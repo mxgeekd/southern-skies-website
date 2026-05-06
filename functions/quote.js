@@ -45,7 +45,7 @@ ${details}
       return new Response("Email failed to send", { status: 500 });
     }
 
-    return Response.redirect(new URL("/mockup-1/thanks.html", request.url), 303);
+    return Response.redirect(new URL("/thanks.html", request.url), 303);
 
   } catch (err) {
     return new Response("Form submission failed", { status: 500 });
