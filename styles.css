@@ -101,16 +101,15 @@ nav {
 }
 
 .veteran-badge {
-  flex-shrink: 0;
-  padding: 8px 12px;
-  border-radius: 999px;
-  background: rgba(217, 164, 65, 0.18);
-  border: 1px solid rgba(217, 164, 65, 0.55);
-  color: var(--green);
-  font-size: 0.72rem;
-  font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.veteran-badge img {
+  height: 50px;
+  width: auto;
+  object-fit: contain;
 }
 
 .hero {
