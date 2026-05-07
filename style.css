@@ -381,3 +381,77 @@ a {
     grid-template-columns: 1fr;
   }
 }
+
+/* About page additions */
+.about-hero {
+  min-height: 480px;
+  background:
+    linear-gradient(90deg, rgba(9, 11, 7, .9), rgba(9, 11, 7, .55), rgba(9, 11, 7, .2)),
+    url("https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=1800&q=80");
+  background-size: cover;
+  background-position: center;
+}
+
+.about-hero .hero-content {
+  max-width: 880px;
+}
+
+.about-hero h1 {
+  max-width: 880px;
+  font-size: clamp(2.6rem, 5.8vw, 5.2rem);
+}
+
+.about-page {
+  padding: 90px 7vw;
+  background: #f5f1e8;
+}
+
+.about-page-inner {
+  max-width: 860px;
+  margin: 0 auto;
+  background: rgba(255, 255, 255, 0.58);
+  padding: clamp(28px, 5vw, 58px);
+  border-radius: 14px;
+  box-shadow: 0 18px 50px rgba(0,0,0,0.08);
+}
+
+.about-page h2 {
+  margin: 0 0 30px;
+  max-width: 760px;
+  font-size: clamp(2rem, 4vw, 3.4rem);
+  line-height: 1.02;
+  text-transform: uppercase;
+  letter-spacing: -0.04em;
+}
+
+.about-page p {
+  max-width: 720px;
+  margin: 0 0 22px;
+  font-size: 1.08rem;
+  line-height: 1.75;
+  color: #2d3528;
+}
+
+.about-callout {
+  margin-top: 48px;
+  padding: clamp(24px, 4vw, 36px);
+  background: #18220f;
+  color: #fff;
+  border-radius: 12px;
+}
+
+.about-callout h3 {
+  margin: 0 0 14px;
+  max-width: 680px;
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  text-transform: uppercase;
+  line-height: 1.1;
+}
+
+.about-callout p {
+  color: #efe9dc;
+}
+
+.about-callout .button {
+  margin-top: 10px;
+}
