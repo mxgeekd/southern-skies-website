@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Google Maps Hectare Calculator</title>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=default"></script>
+    <style>
+      #map { height: 500px; width: 100%; }
+      .controls { padding: 10px; background: #f4f4f4; border: 1px solid #ccc; margin-bottom: 10px; font-family: sans-serif; }
+      #area-display { font-weight: bold; color: #2c3e50; }
+    </style>
+  </head>
+  <body>
+    <div class="controls">
+      <strong>Field Area:</strong> <span id="area-display">0.00</span> Hectares
+      <p><small>Drag the markers or the polygon to update the calculation.</small></p>
+    </div>
+    <div id="map"></div>
+
+    <!-- Replace YOUR_API_KEY with your actual Google Maps API Key -->
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCFSDw9prrF19Qju9zWUuQoFyos-s-DADo&libraries=geometry&callback=initMap" async defer></script>
+
+    <script>
+      let map;
+      let polygon;
+
+      function initMap() {
+        map = new google.maps.Map(document.getElementById("map"), {
+          zoom: 16,
+          center: { lat: -34.397, lng: 150.644 }, // Change to your default location
+          mapTypeId: "satellite",
+        });
+
+        // Define a starting polygon (square)
+        const coords = [
+          { lat: -34.396, lng: 150.643 },
+          { lat: -34.396, lng: 150.645 },
+          { lat: -34.398, lng: 150.645 },
+          { lat: -34.398, lng: 150.643 },
+        ];
+
+        polygon = new google.maps.Polygon({
+          paths: coords,
+          strokeColor: "#FF0000",
+          strokeOpacity: 0.8,
+          strokeWeight: 2,
+          fillColor: "#FF0000",
+          fillOpacity: 0.35,
+          editable: true,
+          draggable: true,
+          map: map,
+        });
+
+        // Calculate initial area
+        updateArea();
+
+        // Listen for changes to the polygon vertices
+        google.maps.event.addListener(polygon.getPath(), "set_at", updateArea);
+        google.maps.event.addListener(polygon.getPath(), "insert_at", updateArea);
+        google.maps.event.addListener(polygon.getPath(), "remove_at", updateArea);
+        
+        // Listen for when the whole polygon is dragged
+        google.maps.event.addListener(polygon, "dragend", updateArea);
+      }
+
+      function updateArea() {
+        const path = polygon.getPath();
+        const areaInSquareMeters = google.maps.geometry.spherical.computeArea(path);
+        
+        // Convert Square Meters to Hectares (1 Hectare = 10,000 m2)
+        const areaInHectares = (areaInSquareMeters / 10000).toFixed(4);
+        
+        document.getElementById("area-display").innerText = areaInHectares;
+      }
+    </script>
+  </body>
+</html>
