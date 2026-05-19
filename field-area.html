@@ -1,76 +1,505 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <title>Google Maps Hectare Calculator</title>
-    <script src="https://polyfill.io/v3/polyfill.min.js?features=default"></script>
-    <style>
-      #map { height: 500px; width: 100%; }
-      .controls { padding: 10px; background: #f4f4f4; border: 1px solid #ccc; margin-bottom: 10px; font-family: sans-serif; }
-      #area-display { font-weight: bold; color: #2c3e50; }
-    </style>
-  </head>
-  <body>
-    <div class="controls">
-      <strong>Field Area:</strong> <span id="area-display">0.00</span> Hectares
-      <p><small>Drag the markers or the polygon to update the calculation.</small></p>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Field Area Estimator | Souther Skies Agritech</title>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: #0f172a;
+      color: #f8fafc;
+    }
+
+    .controls {
+      padding: 16px;
+      background: #111827;
+      border-bottom: 1px solid #334155;
+    }
+
+    .controls h1 {
+      margin: 0 0 8px;
+      font-size: 22px;
+    }
+
+    .area-box {
+      margin: 10px 0;
+      font-size: 18px;
+    }
+
+    #area-display {
+      font-weight: bold;
+      color: #38bdf8;
+    }
+
+    .help-text {
+      margin: 8px 0 12px;
+      color: #cbd5e1;
+      font-size: 14px;
+    }
+
+    button {
+      background: #2563eb;
+      color: white;
+      border: none;
+      padding: 10px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    button:hover {
+      background: #1d4ed8;
+    }
+
+    #map {
+      height: calc(100vh - 145px);
+      width: 100%;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="controls">
+    <h1>Field Area Estimator</h1>
+
+    <div class="area-box">
+      Field Area: <span id="area-display">0.0000</span> hectares
     </div>
-    <div id="map"></div>
 
-    <!-- Replace YOUR_API_KEY with your actual Google Maps API Key -->
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCFSDw9prrF19Qju9zWUuQoFyos-s-DADo&libraries=geometry&callback=initMap" async defer></script>
+    <p class="help-text">
+      Click the map to place boundary markers. Drag markers to reshape the field.
+      Click a marker to delete it.
+    </p>
 
-    <script>
-      let map;
-      let polygon;
+    <button onclick="clearField()">Clear Field</button>
+  </div>
 
-      function initMap() {
-        map = new google.maps.Map(document.getElementById("map"), {
-          zoom: 16,
-          center: { lat: -34.397, lng: 150.644 }, // Change to your default location
-          mapTypeId: "satellite",
-        });
+  <div id="map"></div>
 
-        // Define a starting polygon (square)
-        const coords = [
-          { lat: -34.396, lng: 150.643 },
-          { lat: -34.396, lng: 150.645 },
-          { lat: -34.398, lng: 150.645 },
-          { lat: -34.398, lng: 150.643 },
-        ];
+  <script>
+    let map;
+    let polygon;
+    let markers = [];
 
-        polygon = new google.maps.Polygon({
-          paths: coords,
-          strokeColor: "#FF0000",
-          strokeOpacity: 0.8,
-          strokeWeight: 2,
-          fillColor: "#FF0000",
-          fillOpacity: 0.35,
-          editable: true,
-          draggable: true,
-          map: map,
-        });
+    function initMap() {
+      map = new google.maps.Map(document.getElementById("map"), {
+        zoom: 16,
+        center: { lat: -37.5622, lng: 143.8503 },
+        mapTypeId: "satellite",
+        streetViewControl: false,
+        mapTypeControl: true,
+        fullscreenControl: true,
+      });
 
-        // Calculate initial area
-        updateArea();
+      polygon = new google.maps.Polygon({
+        paths: [],
+        strokeColor: "#38bdf8",
+        strokeOpacity: 0.95,
+        strokeWeight: 3,
+        fillColor: "#38bdf8",
+        fillOpacity: 0.25,
+        map: map,
+      });
 
-        // Listen for changes to the polygon vertices
-        google.maps.event.addListener(polygon.getPath(), "set_at", updateArea);
-        google.maps.event.addListener(polygon.getPath(), "insert_at", updateArea);
-        google.maps.event.addListener(polygon.getPath(), "remove_at", updateArea);
-        
-        // Listen for when the whole polygon is dragged
-        google.maps.event.addListener(polygon, "dragend", updateArea);
+      map.addListener("click", (event) => {
+        addMarker(event.latLng);
+      });
+    }
+
+    function addMarker(position) {
+      const marker = new google.maps.Marker({
+        position,
+        map,
+        draggable: true,
+        title: "Click to delete this boundary marker",
+      });
+
+      markers.push(marker);
+      redrawPolygon();
+
+      marker.addListener("drag", () => {
+        redrawPolygon();
+      });
+
+      marker.addListener("click", () => {
+        marker.setMap(null);
+        markers = markers.filter((m) => m !== marker);
+        redrawPolygon();
+      });
+    }
+
+    function redrawPolygon() {
+      const path = markers.map((marker) => marker.getPosition());
+      polygon.setPath(path);
+      updateArea();
+    }
+
+    function updateArea() {
+      const path = polygon.getPath();
+
+      if (path.getLength() < 3) {
+        document.getElementById("area-display").innerText = "0.0000";
+        return;
       }
 
-      function updateArea() {
-        const path = polygon.getPath();
-        const areaInSquareMeters = google.maps.geometry.spherical.computeArea(path);
-        
-        // Convert Square Meters to Hectares (1 Hectare = 10,000 m2)
-        const areaInHectares = (areaInSquareMeters / 10000).toFixed(4);
-        
-        document.getElementById("area-display").innerText = areaInHectares;
+      const areaInSquareMeters = google.maps.geometry.spherical.computeArea(path);
+      const areaInHectares = areaInSquareMeters / 10000;
+
+      document.getElementById("area-display").innerText = areaInHectares.toFixed(4);
+    }
+
+    function clearField() {
+      markers.forEach((marker) => marker.setMap(null));
+      markers = [];
+      polygon.setPath([]);
+      updateArea();
+    }
+  </script>
+
+  <script
+    async
+    defer
+    src="https://maps.googleapis.com/maps/api/js?key=<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Field Area Estimator | Souther Skies Agritech</title>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: #0f172a;
+      color: #f8fafc;
+    }
+
+    .controls {
+      padding: 16px;
+      background: #111827;
+      border-bottom: 1px solid #334155;
+    }
+
+    .controls h1 {
+      margin: 0 0 8px;
+      font-size: 22px;
+    }
+
+    .area-box {
+      margin: 10px 0;
+      font-size: 18px;
+    }
+
+    #area-display {
+      font-weight: bold;
+      color: #38bdf8;
+    }
+
+    .help-text {
+      margin: 8px 0 12px;
+      color: #cbd5e1;
+      font-size: 14px;
+    }
+
+    button {
+      background: #2563eb;
+      color: white;
+      border: none;
+      padding: 10px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    button:hover {
+      background: #1d4ed8;
+    }
+
+    #map {
+      height: calc(100vh - 145px);
+      width: 100%;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="controls">
+    <h1>Field Area Estimator</h1>
+
+    <div class="area-box">
+      Field Area: <span id="area-display">0.0000</span> hectares
+    </div>
+
+    <p class="help-text">
+      Click the map to place boundary markers. Drag markers to reshape the field.
+      Click a marker to delete it.
+    </p>
+
+    <button onclick="clearField()">Clear Field</button>
+  </div>
+
+  <div id="map"></div>
+
+  <script>
+    let map;
+    let polygon;
+    let markers = [];
+
+    function initMap() {
+      map = new google.maps.Map(document.getElementById("map"), {
+        zoom: 16,
+        center: { lat: -37.5622, lng: 143.8503 },
+        mapTypeId: "satellite",
+        streetViewControl: false,
+        mapTypeControl: true,
+        fullscreenControl: true,
+      });
+
+      polygon = new google.maps.Polygon({
+        paths: [],
+        strokeColor: "#38bdf8",
+        strokeOpacity: 0.95,
+        strokeWeight: 3,
+        fillColor: "#38bdf8",
+        fillOpacity: 0.25,
+        map: map,
+      });
+
+      map.addListener("click", (event) => {
+        addMarker(event.latLng);
+      });
+    }
+
+    function addMarker(position) {
+      const marker = new google.maps.Marker({
+        position,
+        map,
+        draggable: true,
+        title: "Click to delete this boundary marker",
+      });
+
+      markers.push(marker);
+      redrawPolygon();
+
+      marker.addListener("drag", () => {
+        redrawPolygon();
+      });
+
+      marker.addListener("click", () => {
+        marker.setMap(null);
+        markers = markers.filter((m) => m !== marker);
+        redrawPolygon();
+      });
+    }
+
+    function redrawPolygon() {
+      const path = markers.map((marker) => marker.getPosition());
+      polygon.setPath(path);
+      updateArea();
+    }
+
+    function updateArea() {
+      const path = polygon.getPath();
+
+      if (path.getLength() < 3) {
+        document.getElementById("area-display").innerText = "0.0000";
+        return;
       }
-    </script>
-  </body>
+
+      const areaInSquareMeters = google.maps.geometry.spherical.computeArea(path);
+      const areaInHectares = areaInSquareMeters / 10000;
+
+      document.getElementById("area-display").innerText = areaInHectares.toFixed(4);
+    }
+
+    function clearField() {
+      markers.forEach((marker) => marker.setMap(null));
+      markers = [];
+      polygon.setPath([]);
+      updateArea();
+    }
+  </script>
+
+  <script
+    async
+    defer
+    src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Field Area Estimator | Souther Skies Agritech</title>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: #0f172a;
+      color: #f8fafc;
+    }
+
+    .controls {
+      padding: 16px;
+      background: #111827;
+      border-bottom: 1px solid #334155;
+    }
+
+    .controls h1 {
+      margin: 0 0 8px;
+      font-size: 22px;
+    }
+
+    .area-box {
+      margin: 10px 0;
+      font-size: 18px;
+    }
+
+    #area-display {
+      font-weight: bold;
+      color: #38bdf8;
+    }
+
+    .help-text {
+      margin: 8px 0 12px;
+      color: #cbd5e1;
+      font-size: 14px;
+    }
+
+    button {
+      background: #2563eb;
+      color: white;
+      border: none;
+      padding: 10px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    button:hover {
+      background: #1d4ed8;
+    }
+
+    #map {
+      height: calc(100vh - 145px);
+      width: 100%;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="controls">
+    <h1>Field Area Estimator</h1>
+
+    <div class="area-box">
+      Field Area: <span id="area-display">0.0000</span> hectares
+    </div>
+
+    <p class="help-text">
+      Click the map to place boundary markers. Drag markers to reshape the field.
+      Click a marker to delete it.
+    </p>
+
+    <button onclick="clearField()">Clear Field</button>
+  </div>
+
+  <div id="map"></div>
+
+  <script>
+    let map;
+    let polygon;
+    let markers = [];
+
+    function initMap() {
+      map = new google.maps.Map(document.getElementById("map"), {
+        zoom: 16,
+        center: { lat: -37.5622, lng: 143.8503 },
+        mapTypeId: "satellite",
+        streetViewControl: false,
+        mapTypeControl: true,
+        fullscreenControl: true,
+      });
+
+      polygon = new google.maps.Polygon({
+        paths: [],
+        strokeColor: "#38bdf8",
+        strokeOpacity: 0.95,
+        strokeWeight: 3,
+        fillColor: "#38bdf8",
+        fillOpacity: 0.25,
+        map: map,
+      });
+
+      map.addListener("click", (event) => {
+        addMarker(event.latLng);
+      });
+    }
+
+    function addMarker(position) {
+      const marker = new google.maps.Marker({
+        position,
+        map,
+        draggable: true,
+        title: "Click to delete this boundary marker",
+      });
+
+      markers.push(marker);
+      redrawPolygon();
+
+      marker.addListener("drag", () => {
+        redrawPolygon();
+      });
+
+      marker.addListener("click", () => {
+        marker.setMap(null);
+        markers = markers.filter((m) => m !== marker);
+        redrawPolygon();
+      });
+    }
+
+    function redrawPolygon() {
+      const path = markers.map((marker) => marker.getPosition());
+      polygon.setPath(path);
+      updateArea();
+    }
+
+    function updateArea() {
+      const path = polygon.getPath();
+
+      if (path.getLength() < 3) {
+        document.getElementById("area-display").innerText = "0.0000";
+        return;
+      }
+
+      const areaInSquareMeters = google.maps.geometry.spherical.computeArea(path);
+      const areaInHectares = areaInSquareMeters / 10000;
+
+      document.getElementById("area-display").innerText = areaInHectares.toFixed(4);
+    }
+
+    function clearField() {
+      markers.forEach((marker) => marker.setMap(null));
+      markers = [];
+      polygon.setPath([]);
+      updateArea();
+    }
+  </script>
+
+  <script
+    async
+    defer
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCFSDw9prrF19Qju9zWUuQoFyos-s-DADo&libraries=geometry&callback=initMap">
+  </script>
+</body>
+</html>&libraries=geometry&callback=initMap">
+  </script>
+</body>
+</html>&libraries=geometry&callback=initMap">
+  </script>
+</body>
 </html>
