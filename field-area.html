@@ -71,8 +71,8 @@
     </div>
 
     <p class="help-text">
-      Click the map to place boundary markers. Drag markers to reshape the field.
-      Drag the shaded polygon to move the whole field. Click a marker to delete it.
+      Click the map to place boundary markers. After three points, new markers are inserted into the nearest boundary line.
+      Drag markers to reshape the field. Drag the shaded polygon to move the whole field. Click a marker to delete it.
     </p>
 
     <button onclick="clearField()">Clear Field</button>
@@ -107,7 +107,7 @@
       });
 
       map.addListener("click", (event) => {
-        addMarker(event.latLng);
+        addMarkerSmart(event.latLng);
       });
 
       polygon.addListener("dragend", () => {
@@ -116,16 +116,27 @@
       });
     }
 
-    function addMarker(position) {
+    function makeMarker(position, number) {
       const marker = new google.maps.Marker({
         position,
         map,
         draggable: true,
+        label: {
+          text: String(number),
+          color: "#ffffff",
+          fontWeight: "bold",
+          fontSize: "13px",
+        },
+        icon: {
+          path: google.maps.SymbolPath.CIRCLE,
+          scale: 13,
+          fillColor: "#2563eb",
+          fillOpacity: 1,
+          strokeColor: "#ffffff",
+          strokeWeight: 2,
+        },
         title: "Click to delete this boundary marker",
       });
-
-      markers.push(marker);
-      redrawPolygon();
 
       marker.addListener("drag", () => {
         redrawPolygon();
@@ -134,8 +145,66 @@
       marker.addListener("click", () => {
         marker.setMap(null);
         markers = markers.filter((m) => m !== marker);
+        refreshMarkerNumbers();
         redrawPolygon();
       });
+
+      return marker;
+    }
+
+    function addMarkerSmart(position) {
+      const marker = makeMarker(position, markers.length + 1);
+
+      if (markers.length < 3) {
+        markers.push(marker);
+      } else {
+        const insertIndex = findNearestSegmentInsertIndex(position);
+        markers.splice(insertIndex, 0, marker);
+      }
+
+      refreshMarkerNumbers();
+      redrawPolygon();
+    }
+
+    function findNearestSegmentInsertIndex(position) {
+      let closestIndex = markers.length;
+      let closestDistance = Infinity;
+
+      for (let i = 0; i < markers.length; i++) {
+        const start = markers[i].getPosition();
+        const end = markers[(i + 1) % markers.length].getPosition();
+
+        const distance = google.maps.geometry.spherical.computeDistanceBetween(
+          position,
+          closestPointOnSegment(position, start, end)
+        );
+
+        if (distance < closestDistance) {
+          closestDistance = distance;
+          closestIndex = i + 1;
+        }
+      }
+
+      return closestIndex;
+    }
+
+    function closestPointOnSegment(point, start, end) {
+      const p = { x: point.lng(), y: point.lat() };
+      const a = { x: start.lng(), y: start.lat() };
+      const b = { x: end.lng(), y: end.lat() };
+
+      const dx = b.x - a.x;
+      const dy = b.y - a.y;
+
+      if (dx === 0 && dy === 0) return start;
+
+      let t = ((p.x - a.x) * dx + (p.y - a.y) * dy) / (dx * dx + dy * dy);
+      t = Math.max(0, Math.min(1, t));
+
+      return new google.maps.LatLng(
+        a.y + t * dy,
+        a.x + t * dx
+      );
     }
 
     function redrawPolygon() {
@@ -151,6 +220,17 @@
         if (markers[index]) {
           markers[index].setPosition(latLng);
         }
+      });
+    }
+
+    function refreshMarkerNumbers() {
+      markers.forEach((marker, index) => {
+        marker.setLabel({
+          text: String(index + 1),
+          color: "#ffffff",
+          fontWeight: "bold",
+          fontSize: "13px",
+        });
       });
     }
 
