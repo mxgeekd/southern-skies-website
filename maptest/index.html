@@ -92,6 +92,10 @@
       gap: 7px;
     }
 
+    .basemap-tabs {
+  grid-template-columns: repeat(2, 1fr);
+    }
+
     .layer-btn {
       appearance: none;
       border: 1px solid #cfd9d2;
@@ -246,6 +250,20 @@
     <h1 id="title">Loading survey…</h1>
     <div class="meta" id="meta"></div>
 
+<div class="section">
+  <div class="section-title">Basemap</div>
+
+  <div class="layer-tabs basemap-tabs">
+    <button class="layer-btn active" id="mapBasemapBtn" type="button">
+      Map
+    </button>
+
+    <button class="layer-btn" id="satelliteBasemapBtn" type="button">
+      Satellite
+    </button>
+  </div>
+</div>
+
     <div class="section">
       <div class="section-title">Imagery</div>
 
@@ -287,6 +305,8 @@
 
   <script>
     (async function () {
+      const ESRI_API_KEY = AAPTagPaE_90QGccsyzPLnRE4Cg..TvuUowd1TLpfnMBY81AHr82_9fY59SLQRn83OCQYB7I2KR7Ol1ZFgX-4-FArM1-ZhG9XLxQ87w-7NPCjch6dl2wObSko4Yz2A0uqBbL_p_kzZ-dVw9BVx4tYoC9ZmGnYwIm_3GJuFVszijxgo_-yXWzuHaqJweNucXYceuC2gg4UVt2CDwJ5GGbAlCRI8d9xdEdIdhqPa9Aggs3AIdd_62oyvNjkROBYcEit02g7f90eJ6DRjWJpsA..AT1_6PqmzSJc
+
       const status = document.getElementById('status');
       let survey;
 
@@ -318,25 +338,46 @@
         style: {
           version: 8,
 
-          sources: {
-            osm: {
-              type: 'raster',
-              tiles: [
-                'https://tile.openstreetmap.org/{z}/{x}/{y}.png'
-              ],
-              tileSize: 256,
-              attribution: '© OpenStreetMap contributors',
-              maxzoom: 19
-            }
-          },
+       sources: {
+        osm: {
+         type: 'raster',
+           tiles: [
+            'https://tile.openstreetmap.org/{z}/{x}/{y}.png'
+    ],
+    tileSize: 256,
+    attribution: '© OpenStreetMap contributors',
+    maxzoom: 19
+  },
+
+  esriSatellite: {
+    type: 'raster',
+    tiles: [
+      `https://static-map-tiles-api.arcgis.com/arcgis/rest/services/static-basemap-tiles-service/v1/arcgis/imagery/static/tile/{z}/{y}/{x}?token=${ESRI_API_KEY}`
+    ],
+    tileSize: 512,
+    attribution: 'Esri, Maxar, Earthstar Geographics, and the GIS User Community',
+    maxzoom: 23
+  }
+},
 
           layers: [
-            {
-              id: 'osm',
-              type: 'raster',
-              source: 'osm'
-            }
-          ]
+  {
+    id: 'osm',
+    type: 'raster',
+    source: 'osm',
+    layout: {
+      visibility: 'visible'
+    }
+  },
+  {
+    id: 'esri-satellite',
+    type: 'raster',
+    source: 'esriSatellite',
+    layout: {
+      visibility: 'none'
+    }
+  }
+]
         }
       });
 
@@ -349,6 +390,52 @@
         new maplibregl.FullscreenControl(),
         'top-right'
       );
+
+      const mapBasemapBtn =
+  document.getElementById('mapBasemapBtn');
+
+const satelliteBasemapBtn =
+  document.getElementById('satelliteBasemapBtn');
+
+function setBasemap(type) {
+  const satellite = type === 'satellite';
+
+  if (map.getLayer('osm')) {
+    map.setLayoutProperty(
+      'osm',
+      'visibility',
+      satellite ? 'none' : 'visible'
+    );
+  }
+
+  if (map.getLayer('esri-satellite')) {
+    map.setLayoutProperty(
+      'esri-satellite',
+      'visibility',
+      satellite ? 'visible' : 'none'
+    );
+  }
+
+  mapBasemapBtn.classList.toggle(
+    'active',
+    !satellite
+  );
+
+  satelliteBasemapBtn.classList.toggle(
+    'active',
+    satellite
+  );
+}
+
+mapBasemapBtn.addEventListener(
+  'click',
+  () => setBasemap('map')
+);
+
+satelliteBasemapBtn.addEventListener(
+  'click',
+  () => setBasemap('satellite')
+);
 
       let activeKey = 'rgb';
 
