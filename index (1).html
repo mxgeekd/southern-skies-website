@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Southern Skies Agritech — Map Viewer</title>
+<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5.7.3/dist/maplibre-gl.css">
+<style>
+html,body,#map{margin:0;width:100%;height:100%;font-family:Arial,sans-serif}.panel{position:absolute;z-index:5;top:12px;left:12px;background:#fffffff2;padding:14px;border-radius:12px;width:min(360px,calc(100vw - 24px));box-shadow:0 6px 24px #0003}.ey{font-size:11px;letter-spacing:.08em;color:#1f6f43;font-weight:800;text-transform:uppercase}.panel h1{margin:4px 0 2px;font-size:20px}.meta{color:#657268;font-size:13px;margin-bottom:12px}.btns{display:flex;gap:7px;flex-wrap:wrap}.btn{border:1px solid #cfd9d2;background:#f7faf8;padding:9px 11px;border-radius:8px;font-weight:700;cursor:pointer}.btn.active{background:#1f6f43;color:#fff;border-color:#1f6f43}.row{margin-top:10px;padding-top:10px;border-top:1px solid #dbe4dd}@media(max-width:700px){.panel{top:auto;bottom:0;left:0;width:100vw;border-radius:14px 14px 0 0}}
+</style></head>
+<body><div id="map"></div><div class="panel">
+<div class="ey">Southern Skies Agritech</div><h1 id="title">Loading...</h1><div class="meta" id="meta"></div>
+<div class="btns" id="layerBtns"></div>
+<div class="row btns"><button class="btn active" id="mapBtn">Map</button><button class="btn" id="satBtn">Satellite</button><button class="btn" id="fitBtn">Fit survey</button></div>
+</div>
+<script src="/maps/config.js"></script>
+<script src="https://unpkg.com/maplibre-gl@5.7.3/dist/maplibre-gl.js"></script>
+<script>
+(async function(){
+const q=new URLSearchParams(location.search), client=q.get('client'), paddockId=q.get('paddock'), dateId=q.get('date');
+if(!client||!paddockId||!dateId) throw new Error('Missing client, paddock or date.');
+const data=await fetch(`/portal/${client}/property.json`).then(r=>r.json());
+const p=data.paddocks.find(x=>x.id===paddockId), s=p.surveys.find(x=>x.date===dateId);
+document.getElementById('title').textContent=p.name;
+document.getElementById('meta').textContent=`${data.name} · ${s.dateLabel}`;
+const key=window.SSA_CONFIG?.ESRI_API_KEY||'';
+let esri={version:8,sources:{},layers:[]}, esriIds=[];
+try{
+ const r=await fetch(`https://basemapstyles-api.arcgis.com/arcgis/rest/services/styles/v2/styles/arcgis/imagery/standard?token=${encodeURIComponent(key)}`);
+ if(r.ok) esri=await r.json();
+}catch(e){}
+esri.sources=esri.sources||{}; esri.layers=esri.layers||[]; esriIds=esri.layers.map(l=>l.id);
+esri.layers.forEach(l=>{l.layout=l.layout||{};l.layout.visibility='none'});
+esri.sources.ssa_osm={type:'raster',tiles:['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],tileSize:256,attribution:'© OpenStreetMap contributors'};
+esri.layers.unshift({id:'ssa-osm',type:'raster',source:'ssa_osm',layout:{visibility:'visible'}});
+const map=new maplibregl.Map({container:'map',style:esri,center:s.center,zoom:16});
+map.addControl(new maplibregl.NavigationControl(),'top-right');
+let currentLayer=Object.keys(s.layers)[0];
+function bounds4(){return [s.bounds[0][0],s.bounds[0][1],s.bounds[1][0],s.bounds[1][1]]}
+function showLayer(k){
+ if(map.getLayer('survey')) map.removeLayer('survey'); if(map.getSource('survey')) map.removeSource('survey');
+ const L=s.layers[k]; map.addSource('survey',{type:'raster',tiles:[L.tiles],tileSize:256,minzoom:L.minzoom||14,maxzoom:L.maxzoom||20,scheme:L.scheme||'tms',bounds:bounds4()});
+ map.addLayer({id:'survey',type:'raster',source:'survey'}); currentLayer=k;
+ document.querySelectorAll('[data-layer]').forEach(b=>b.classList.toggle('active',b.dataset.layer===k));
+}
+map.on('load',()=>{Object.entries(s.layers).forEach(([k,L])=>{const b=document.createElement('button');b.className='btn';b.dataset.layer=k;b.textContent=L.label;b.onclick=()=>showLayer(k);document.getElementById('layerBtns').appendChild(b)});showLayer(currentLayer);map.fitBounds(s.bounds,{padding:50,maxZoom:19})});
+function base(sat){if(map.getLayer('ssa-osm')) map.setLayoutProperty('ssa-osm','visibility',sat?'none':'visible');esriIds.forEach(id=>{if(map.getLayer(id))map.setLayoutProperty(id,'visibility',sat?'visible':'none')});document.getElementById('mapBtn').classList.toggle('active',!sat);document.getElementById('satBtn').classList.toggle('active',sat)}
+document.getElementById('mapBtn').onclick=()=>base(false);document.getElementById('satBtn').onclick=()=>base(true);document.getElementById('fitBtn').onclick=()=>map.fitBounds(s.bounds,{padding:50,maxZoom:19});
+})();
+</script></body></html>
