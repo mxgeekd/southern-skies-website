@@ -1,5 +1,6 @@
 <!doctype html>
 <html lang="en">
+
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -12,6 +13,7 @@
   >
 
   <style>
+
     :root {
       --panel: rgba(255,255,255,.97);
       --ink: #172019;
@@ -115,7 +117,7 @@
 
     .layer-btn.active {
       background: var(--green);
-      color: white;
+      color: #fff;
       border-color: var(--green);
     }
 
@@ -235,6 +237,7 @@
     }
 
     @media (max-width: 650px) {
+
       .panel {
         top: 8px;
         left: 8px;
@@ -245,13 +248,17 @@
       h1 {
         font-size: 18px;
       }
+
     }
+
   </style>
 </head>
+
 
 <body>
 
   <div id="map"></div>
+
 
   <div class="panel">
 
@@ -263,7 +270,10 @@
       Loading survey...
     </h1>
 
-    <div class="meta" id="meta"></div>
+    <div
+      class="meta"
+      id="meta">
+    </div>
 
 
     <!-- BASEMAP -->
@@ -295,7 +305,7 @@
     </div>
 
 
-    <!-- IMAGERY -->
+    <!-- SURVEY IMAGERY -->
 
     <div class="section">
 
@@ -308,8 +318,6 @@
         id="layerTabs">
       </div>
 
-
-      <!-- OPACITY -->
 
       <div class="row">
 
@@ -332,8 +340,6 @@
       </div>
 
 
-      <!-- ACTIONS -->
-
       <div class="actions">
 
         <button
@@ -345,8 +351,6 @@
 
       </div>
 
-
-      <!-- LEGEND -->
 
       <div
         class="legend"
@@ -379,8 +383,6 @@
       </div>
 
 
-      <!-- STATUS -->
-
       <div
         class="status"
         id="status">
@@ -394,16 +396,16 @@
 
   <script src="https://unpkg.com/maplibre-gl@5.7.3/dist/maplibre-gl.js"></script>
 
+
   <script>
 
     (async function () {
+
 
       /*
        * ==========================================================
        * ARCGIS API KEY
        * ==========================================================
-       *
-       * Paste your ArcGIS token ONLY between the quotes.
        */
 
       const ESRI_API_KEY =
@@ -412,12 +414,15 @@
 
       /*
        * ==========================================================
-       * PAGE ELEMENTS
+       * ELEMENTS
        * ==========================================================
        */
 
       const status =
         document.getElementById('status');
+
+      const tabs =
+        document.getElementById('layerTabs');
 
       const opacity =
         document.getElementById('opacity');
@@ -430,9 +435,6 @@
 
       const satelliteBasemapBtn =
         document.getElementById('satelliteBasemapBtn');
-
-      const tabs =
-        document.getElementById('layerTabs');
 
 
       /*
@@ -475,14 +477,9 @@
           error.message;
 
         return;
+
       }
 
-
-      /*
-       * ==========================================================
-       * SURVEY INFORMATION
-       * ==========================================================
-       */
 
       document
         .getElementById('title')
@@ -500,57 +497,12 @@
 
       /*
        * ==========================================================
-       * BASEMAP DEFINITIONS
+       * LOAD ESRI IMAGERY STYLE
        * ==========================================================
-       */
-
-      const OSM_STYLE = {
-
-        version: 8,
-
-        sources: {
-
-          osm: {
-
-            type: 'raster',
-
-            tiles: [
-              'https://tile.openstreetmap.org/{z}/{x}/{y}.png'
-            ],
-
-            tileSize: 256,
-
-            maxzoom: 19,
-
-            attribution:
-              '© OpenStreetMap contributors'
-
-          }
-
-        },
-
-        layers: [
-
-          {
-
-            id: 'osm',
-
-            type: 'raster',
-
-            source: 'osm'
-
-          }
-
-        ]
-
-      };
-
-
-      /*
-       * Esri Basemap Styles service.
        *
-       * imagery/standard gives us aerial/satellite imagery
-       * without needing to manually construct Esri tile URLs.
+       * We load the Esri style once.
+       *
+       * We DO NOT use map.setStyle() later.
        */
 
       const ESRI_STYLE_URL =
@@ -561,23 +513,154 @@
         encodeURIComponent(ESRI_API_KEY);
 
 
+      let baseStyle;
+
+      try {
+
+        status.textContent =
+          'Loading basemaps...';
+
+
+        const esriResponse =
+          await fetch(
+            ESRI_STYLE_URL
+          );
+
+
+        if (!esriResponse.ok) {
+
+          throw new Error(
+            'Esri returned HTTP ' +
+            esriResponse.status
+          );
+
+        }
+
+
+        baseStyle =
+          await esriResponse.json();
+
+      }
+      catch (error) {
+
+        console.error(
+          'Could not load Esri style:',
+          error
+        );
+
+
+        /*
+         * Fallback style.
+         *
+         * If Esri fails completely, the viewer still works
+         * with OpenStreetMap.
+         */
+
+        baseStyle = {
+
+          version: 8,
+
+          sources: {},
+
+          layers: []
+
+        };
+
+
+        status.textContent =
+          'Satellite unavailable. Map mode still available.';
+
+      }
+
+
       /*
        * ==========================================================
-       * MAP STATE
+       * IDENTIFY ESRI LAYERS
+       * ==========================================================
+       *
+       * Save their IDs BEFORE we add our own OSM layer.
+       */
+
+      const esriLayerIds =
+        (baseStyle.layers || [])
+          .map(
+            function (layer) {
+              return layer.id;
+            }
+          );
+
+
+      /*
+       * Start Esri hidden.
+       */
+
+      (baseStyle.layers || [])
+        .forEach(
+          function (layer) {
+
+            if (!layer.layout) {
+              layer.layout = {};
+            }
+
+            layer.layout.visibility =
+              'none';
+
+          }
+        );
+
+
+      /*
+       * ==========================================================
+       * ADD OSM TO SAME STYLE
        * ==========================================================
        */
 
-      let activeKey =
-        'rgb';
+      if (!baseStyle.sources) {
+        baseStyle.sources = {};
+      }
 
-      let activeBasemap =
-        'map';
 
-      let surveyOpacity =
-        1;
+      baseStyle.sources.ssa_osm = {
 
-      let initialFitDone =
-        false;
+        type: 'raster',
+
+        tiles: [
+          'https://tile.openstreetmap.org/{z}/{x}/{y}.png'
+        ],
+
+        tileSize: 256,
+
+        maxzoom: 19,
+
+        attribution:
+          '© OpenStreetMap contributors'
+
+      };
+
+
+      /*
+       * Put OSM at the bottom of the layer stack.
+       */
+
+      baseStyle.layers.unshift({
+
+        id:
+          'ssa-osm',
+
+        type:
+          'raster',
+
+        source:
+          'ssa_osm',
+
+        layout: {
+
+          visibility:
+            'visible'
+
+        }
+
+      });
 
 
       /*
@@ -602,7 +685,7 @@
             true,
 
           style:
-            OSM_STYLE
+            baseStyle
 
         });
 
@@ -617,6 +700,49 @@
         new maplibregl.FullscreenControl(),
         'top-right'
       );
+
+
+      /*
+       * ==========================================================
+       * STATE
+       * ==========================================================
+       */
+
+      let activeKey =
+        'rgb';
+
+      let surveyOpacity =
+        1;
+
+
+      /*
+       * ==========================================================
+       * SURVEY BOUNDS
+       * ==========================================================
+       *
+       * survey.bounds is:
+       *
+       * [
+       *   [west, south],
+       *   [east, north]
+       * ]
+       *
+       * MapLibre raster source wants:
+       *
+       * [west, south, east, north]
+       */
+
+      const rasterBounds = [
+
+        survey.bounds[0][0],
+
+        survey.bounds[0][1],
+
+        survey.bounds[1][0],
+
+        survey.bounds[1][1]
+
+      ];
 
 
       /*
@@ -652,7 +778,9 @@
       function setLegend(layer) {
 
         const legend =
-          document.getElementById('legend');
+          document.getElementById(
+            'legend'
+          );
 
 
         if (!layer.legend) {
@@ -667,14 +795,18 @@
 
 
         document
-          .getElementById('legendTitle')
+          .getElementById(
+            'legendTitle'
+          )
           .textContent =
           layer.legend.title ||
           layer.label;
 
 
         document
-          .getElementById('legendSubtitle')
+          .getElementById(
+            'legendSubtitle'
+          )
           .textContent =
           layer.legend.subtitle ||
           '';
@@ -701,6 +833,7 @@
                 'div'
               );
 
+
             row.className =
               'legend-note';
 
@@ -709,6 +842,7 @@
               document.createElement(
                 'span'
               );
+
 
             label.textContent =
               tick.label;
@@ -719,6 +853,7 @@
                 'strong'
               );
 
+
             value.textContent =
               tick.value;
 
@@ -727,9 +862,11 @@
               label
             );
 
+
             row.appendChild(
               value
             );
+
 
             notes.appendChild(
               row
@@ -748,118 +885,65 @@
 
       /*
        * ==========================================================
-       * ADD / RESTORE SURVEY LAYERS
+       * BASEMAP SWITCHING
        * ==========================================================
        *
-       * map.setStyle() removes custom layers.
+       * IMPORTANT:
        *
-       * Therefore every time the basemap changes we put
-       * RGB / NDVI / GNDVI back on top of the basemap.
+       * No setStyle().
+       *
+       * We only change visibility.
+       *
+       * Therefore survey layers remain untouched.
        */
 
-      function restoreSurveyLayers() {
+      function setBasemap(type) {
 
-        Object
-          .keys(survey.layers)
+        const satellite =
+          type === 'satellite';
+
+
+        /*
+         * OSM
+         */
+
+        if (
+          map.getLayer(
+            'ssa-osm'
+          )
+        ) {
+
+          map.setLayoutProperty(
+            'ssa-osm',
+            'visibility',
+            satellite
+              ? 'none'
+              : 'visible'
+          );
+
+        }
+
+
+        /*
+         * Esri layers
+         */
+
+        esriLayerIds
           .forEach(
-            function (key) {
-
-              const layer =
-                survey.layers[key];
-
-
-              const sourceId =
-                'survey-' +
-                key;
-
-
-              const layerId =
-                'survey-' +
-                key +
-                '-layer';
-
-
-              /*
-               * Add source if missing
-               */
+            function (layerId) {
 
               if (
-                !map.getSource(
-                  sourceId
-                )
-              ) {
-
-                map.addSource(
-                  sourceId,
-                  {
-
-                    type:
-                      'raster',
-
-                    tiles: [
-                      layer.tiles
-                    ],
-
-                    tileSize:
-                      256,
-
-                    minzoom:
-                      layer.minzoom ||
-                      14,
-
-                    maxzoom:
-                      layer.maxzoom ||
-                      20,
-
-                    scheme:
-                      layer.scheme ||
-                      'tms'
-
-                  }
-                );
-
-              }
-
-
-              /*
-               * Add layer if missing
-               */
-
-              if (
-                !map.getLayer(
+                map.getLayer(
                   layerId
                 )
               ) {
 
-                map.addLayer(
-                  {
-
-                    id:
-                      layerId,
-
-                    type:
-                      'raster',
-
-                    source:
-                      sourceId,
-
-                    layout: {
-
-                      visibility:
-                        key === activeKey
-                          ? 'visible'
-                          : 'none'
-
-                    },
-
-                    paint: {
-
-                      'raster-opacity':
-                        surveyOpacity
-
-                    }
-
-                  }
+                map.setLayoutProperty(
+                  layerId,
+                  'visibility',
+                  satellite
+                    ? 'visible'
+                    : 'none'
                 );
 
               }
@@ -869,81 +953,8 @@
 
 
         /*
-         * Restore selected vegetation legend
+         * Buttons
          */
-
-        setLegend(
-          survey.layers[
-            activeKey
-          ]
-        );
-
-
-        /*
-         * Fit only on initial page load.
-         *
-         * Switching basemaps will NOT reset the user's zoom.
-         */
-
-        if (
-          !initialFitDone
-        ) {
-
-          fitSurvey();
-
-          initialFitDone =
-            true;
-
-        }
-
-
-        status.textContent =
-          survey.layers[
-            activeKey
-          ].label +
-          ' layer enabled.';
-
-      }
-
-
-      /*
-       * Every new basemap style triggers this.
-       */
-
-      map.on(
-        'style.load',
-        function () {
-
-          restoreSurveyLayers();
-
-        }
-      );
-
-
-      /*
-       * ==========================================================
-       * BASEMAP SWITCHER
-       * ==========================================================
-       */
-
-      function setBasemap(type) {
-
-        if (
-          type === activeBasemap
-        ) {
-
-          return;
-
-        }
-
-
-        activeBasemap =
-          type;
-
-
-        const satellite =
-          type === 'satellite';
-
 
         mapBasemapBtn
           .classList
@@ -961,34 +972,10 @@
           );
 
 
-        if (
+        status.textContent =
           satellite
-        ) {
-
-          status.textContent =
-            'Loading satellite basemap...';
-
-
-          /*
-           * Esri style URL is supplied directly to MapLibre.
-           */
-
-          map.setStyle(
-            ESRI_STYLE_URL
-          );
-
-        }
-        else {
-
-          status.textContent =
-            'Loading map basemap...';
-
-
-          map.setStyle(
-            OSM_STYLE
-          );
-
-        }
+            ? 'Satellite basemap enabled.'
+            : 'Map basemap enabled.';
 
       }
 
@@ -1021,7 +1008,7 @@
 
       /*
        * ==========================================================
-       * RGB / NDVI / GNDVI SWITCHER
+       * SURVEY LAYER SWITCHING
        * ==========================================================
        */
 
@@ -1032,7 +1019,9 @@
 
 
         Object
-          .keys(survey.layers)
+          .keys(
+            survey.layers
+          )
           .forEach(
             function (layerKey) {
 
@@ -1067,9 +1056,7 @@
                 );
 
 
-              if (
-                button
-              ) {
+              if (button) {
 
                 button
                   .classList
@@ -1107,12 +1094,16 @@
        */
 
       Object
-        .keys(survey.layers)
+        .keys(
+          survey.layers
+        )
         .forEach(
           function (key) {
 
             const layer =
-              survey.layers[key];
+              survey.layers[
+                key
+              ];
 
 
             const button =
@@ -1161,6 +1152,150 @@
 
           }
         );
+
+
+      /*
+       * ==========================================================
+       * MAP LOAD
+       * ==========================================================
+       */
+
+      map.on(
+        'load',
+        function () {
+
+
+          /*
+           * Add all R2 survey layers.
+           *
+           * The bounds property is important:
+           *
+           * MapLibre should no longer request raster tiles
+           * outside this survey's bounding box.
+           */
+
+          Object
+            .keys(
+              survey.layers
+            )
+            .forEach(
+              function (key) {
+
+                const layer =
+                  survey.layers[
+                    key
+                  ];
+
+
+                const sourceId =
+                  'survey-' +
+                  key;
+
+
+                const layerId =
+                  'survey-' +
+                  key +
+                  '-layer';
+
+
+                map.addSource(
+                  sourceId,
+                  {
+
+                    type:
+                      'raster',
+
+                    tiles: [
+                      layer.tiles
+                    ],
+
+                    tileSize:
+                      256,
+
+                    minzoom:
+                      layer.minzoom ||
+                      14,
+
+                    maxzoom:
+                      layer.maxzoom ||
+                      20,
+
+                    scheme:
+                      layer.scheme ||
+                      'tms',
+
+                    bounds:
+                      rasterBounds
+
+                  }
+                );
+
+
+                /*
+                 * Survey layer is added LAST.
+                 *
+                 * Therefore it sits ABOVE:
+                 *
+                 * OSM
+                 * Esri satellite
+                 */
+
+                map.addLayer({
+
+                  id:
+                    layerId,
+
+                  type:
+                    'raster',
+
+                  source:
+                    sourceId,
+
+                  layout: {
+
+                    visibility:
+                      key === activeKey
+                        ? 'visible'
+                        : 'none'
+
+                  },
+
+                  paint: {
+
+                    'raster-opacity':
+                      surveyOpacity
+
+                  }
+
+                });
+
+              }
+            );
+
+
+          /*
+           * Fit initial view
+           */
+
+          fitSurvey();
+
+
+          /*
+           * Initial legend
+           */
+
+          setLegend(
+            survey.layers[
+              activeKey
+            ]
+          );
+
+
+          status.textContent =
+            'RGB orthomosaic enabled.';
+
+        }
+      );
 
 
       /*
@@ -1237,7 +1372,7 @@
 
       /*
        * ==========================================================
-       * ERROR HANDLING
+       * ERRORS
        * ==========================================================
        */
 
@@ -1245,26 +1380,17 @@
         'error',
         function (event) {
 
-          const error =
+          console.error(
+            'MapLibre:',
             event &&
             event.error
               ? event.error
-              : event;
-
-
-          console.error(
-            'MapLibre error:',
-            error
+              : event
           );
-
-
-          /*
-           * Don't replace useful status text every time
-           * MapLibre requests a missing edge tile from R2.
-           */
 
         }
       );
+
 
     })();
 
