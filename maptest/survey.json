@@ -1,97 +1,186 @@
 {
-  "id": "towal-creek-2026-08-29",
   "property": "Towal Creek",
-  "paddock": "Demo Paddock",
-  "date": "2026-08-29",
-  "dateLabel": "29 Aug 2026",
-  "bounds": [
-    [
-      152.3650913,
-      -30.8151665
-    ],
-    [
-      152.3728435,
-      -30.809578
-    ]
-  ],
-  "center": [
-    152.3689674,
-    -30.8123723
-  ],
-  "layers": {
-    "rgb": {
-      "label": "RGB",
-      "tiles": "https://maps.southernskiesagritech.com.au/towal-creek/2026-08-29/rgb/{z}/{x}/{y}.png",
-      "scheme": "tms",
-      "minzoom": 14,
-      "maxzoom": 20,
-      "legend": null
-    },
-    "ndvi": {
-      "label": "NDVI",
-      "tiles": "https://maps.southernskiesagritech.com.au/towal-creek/2026-08-29/ndvi/{z}/{x}/{y}.png",
-      "scheme": "tms",
-      "minzoom": 14,
-      "maxzoom": 20,
-      "legend": {
-        "title": "NDVI",
-        "subtitle": "Vegetation vigour index",
-        "ticks": [
-          {
-            "value": "-1.0",
-            "label": "Very low / non-vegetation"
-          },
-          {
-            "value": "0.0",
-            "label": "Bare / non-vegetation"
-          },
-          {
-            "value": "0.4",
-            "label": "Moderate"
-          },
-          {
-            "value": "0.6",
-            "label": "Strong"
-          },
-          {
-            "value": "0.8+",
-            "label": "Very strong"
+  "surveys": [
+    {
+      "id": "demo-paddock-2026-08-29",
+      "paddock": "Demo Paddock",
+      "date": "2026-08-29",
+      "dateLabel": "29 Aug 2026",
+      "bounds": [
+        [152.3650913, -30.8151665],
+        [152.3728435, -30.809578]
+      ],
+      "center": [
+        152.3689674,
+        -30.8123723
+      ],
+      "layers": {
+        "rgb": {
+          "label": "RGB",
+          "tiles": "https://maps.southernskiesagritech.com.au/towal-creek/2026-08-29/rgb/{z}/{x}/{y}.png",
+          "scheme": "tms",
+          "minzoom": 14,
+          "maxzoom": 20,
+          "legend": null
+        },
+        "ndvi": {
+          "label": "NDVI",
+          "tiles": "https://maps.southernskiesagritech.com.au/towal-creek/2026-08-29/ndvi/{z}/{x}/{y}.png",
+          "scheme": "tms",
+          "minzoom": 14,
+          "maxzoom": 20,
+          "legend": {
+            "title": "NDVI",
+            "subtitle": "Vegetation vigour index",
+            "ticks": [
+              {
+                "value": "-1.0",
+                "label": "Very low / non-vegetation"
+              },
+              {
+                "value": "0.0",
+                "label": "Bare / non-vegetation"
+              },
+              {
+                "value": "0.4",
+                "label": "Moderate"
+              },
+              {
+                "value": "0.6",
+                "label": "Strong"
+              },
+              {
+                "value": "0.8+",
+                "label": "Very strong"
+              }
+            ]
           }
-        ]
+        },
+        "gndvi": {
+          "label": "GNDVI",
+          "tiles": "https://maps.southernskiesagritech.com.au/towal-creek/2026-08-29/gndvi/{z}/{x}/{y}.png",
+          "scheme": "tms",
+          "minzoom": 14,
+          "maxzoom": 20,
+          "legend": {
+            "title": "GNDVI",
+            "subtitle": "Green chlorophyll / canopy response",
+            "ticks": [
+              {
+                "value": "-1.0",
+                "label": "Very low / non-vegetation"
+              },
+              {
+                "value": "0.0",
+                "label": "Bare / non-vegetation"
+              },
+              {
+                "value": "0.4",
+                "label": "Moderate"
+              },
+              {
+                "value": "0.6",
+                "label": "Strong"
+              },
+              {
+                "value": "0.8+",
+                "label": "Very strong"
+              }
+            ]
+          }
+        }
       }
     },
-    "gndvi": {
-      "label": "GNDVI",
-      "tiles": "https://maps.southernskiesagritech.com.au/towal-creek/2026-08-29/gndvi/{z}/{x}/{y}.png",
-      "scheme": "tms",
-      "minzoom": 14,
-      "maxzoom": 20,
-      "legend": {
-        "title": "GNDVI",
-        "subtitle": "Green chlorophyll / canopy response",
-        "ticks": [
-          {
-            "value": "-1.0",
-            "label": "Very low / non-vegetation"
-          },
-          {
-            "value": "0.0",
-            "label": "Bare / non-vegetation"
-          },
-          {
-            "value": "0.4",
-            "label": "Moderate"
-          },
-          {
-            "value": "0.6",
-            "label": "Strong"
-          },
-          {
-            "value": "0.8+",
-            "label": "Very strong"
+
+    {
+      "id": "paddock-1-2-2026-08-29",
+      "paddock": "Paddock 1 + 2",
+      "date": "2026-08-29",
+      "dateLabel": "29 Aug 2026",
+      "bounds": [
+        [152.3701247, -30.8110960],
+        [152.3766099, -30.8080951]
+      ],
+      "center": [
+        152.3733673,
+        -30.8095955
+      ],
+      "layers": {
+        "rgb": {
+          "label": "RGB",
+          "tiles": "https://maps.southernskiesagritech.com.au/towal-creek/2026-08-29/paddock-1-2/rgb/{z}/{x}/{y}.png",
+          "scheme": "tms",
+          "minzoom": 14,
+          "maxzoom": 20,
+          "legend": null
+        },
+        "ndvi": {
+          "label": "NDVI",
+          "tiles": "https://maps.southernskiesagritech.com.au/towal-creek/2026-08-29/paddock-1-2/ndvi/{z}/{x}/{y}.png",
+          "scheme": "tms",
+          "minzoom": 14,
+          "maxzoom": 20,
+          "legend": {
+            "title": "NDVI",
+            "subtitle": "Vegetation vigour index",
+            "ticks": [
+              {
+                "value": "-1.0",
+                "label": "Very low / non-vegetation"
+              },
+              {
+                "value": "0.0",
+                "label": "Bare / non-vegetation"
+              },
+              {
+                "value": "0.4",
+                "label": "Moderate"
+              },
+              {
+                "value": "0.6",
+                "label": "Strong"
+              },
+              {
+                "value": "0.8+",
+                "label": "Very strong"
+              }
+            ]
           }
-        ]
+        },
+        "gndvi": {
+          "label": "GNDVI",
+          "tiles": "https://maps.southernskiesagritech.com.au/towal-creek/2026-08-29/paddock-1-2/gndvi/{z}/{x}/{y}.png",
+          "scheme": "tms",
+          "minzoom": 14,
+          "maxzoom": 20,
+          "legend": {
+            "title": "GNDVI",
+            "subtitle": "Green chlorophyll / canopy response",
+            "ticks": [
+              {
+                "value": "-1.0",
+                "label": "Very low / non-vegetation"
+              },
+              {
+                "value": "0.0",
+                "label": "Bare / non-vegetation"
+              },
+              {
+                "value": "0.4",
+                "label": "Moderate"
+              },
+              {
+                "value": "0.6",
+                "label": "Strong"
+              },
+              {
+                "value": "0.8+",
+                "label": "Very strong"
+              }
+            ]
+          }
+        }
       }
     }
-  }
+  ]
 }
