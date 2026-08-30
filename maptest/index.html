@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Southern Skies Agritech — Map Test</title>
+  <title>Southern Skies Agritech — Field Viewer</title>
 
   <link
     href="https://unpkg.com/maplibre-gl@5.7.3/dist/maplibre-gl.css"
@@ -11,12 +11,22 @@
   />
 
   <style>
+    :root {
+      --panel: rgba(255,255,255,.97);
+      --ink: #172019;
+      --muted: #607065;
+      --green: #1f6f43;
+      --green-dark: #155432;
+      --border: #dbe4dd;
+    }
+
     html, body {
       margin: 0;
       width: 100%;
       height: 100%;
       font-family: Arial, Helvetica, sans-serif;
       background: #111;
+      color: var(--ink);
     }
 
     #map {
@@ -28,37 +38,88 @@
       position: absolute;
       top: 14px;
       left: 14px;
-      z-index: 2;
-      width: min(320px, calc(100vw - 28px));
-      background: rgba(255, 255, 255, 0.96);
-      border-radius: 10px;
-      box-shadow: 0 6px 24px rgba(0,0,0,.25);
-      padding: 14px 16px;
+      z-index: 5;
+      width: min(360px, calc(100vw - 28px));
+      max-height: calc(100vh - 28px);
+      overflow: auto;
+      background: var(--panel);
+      border-radius: 12px;
+      box-shadow: 0 8px 30px rgba(0,0,0,.24);
+      padding: 16px;
       box-sizing: border-box;
+      border: 1px solid rgba(0,0,0,.06);
     }
 
-    .panel h1 {
-      margin: 0 0 4px;
-      font-size: 18px;
+    .eyebrow {
+      font-size: 11px;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--green);
+      font-weight: 700;
+      margin-bottom: 5px;
     }
 
-    .panel .sub {
-      margin: 0 0 14px;
-      color: #555;
+    h1 {
+      margin: 0;
+      font-size: 20px;
+      line-height: 1.2;
+    }
+
+    .meta {
+      margin-top: 4px;
+      color: var(--muted);
       font-size: 13px;
+    }
+
+    .section {
+      margin-top: 16px;
+      padding-top: 14px;
+      border-top: 1px solid var(--border);
+    }
+
+    .section-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: #344239;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+
+    .layer-tabs {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 7px;
+    }
+
+    .layer-btn {
+      appearance: none;
+      border: 1px solid #cfd9d2;
+      background: #f7faf8;
+      color: #27332b;
+      padding: 9px 8px;
+      border-radius: 8px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .layer-btn.active {
+      background: var(--green);
+      color: #fff;
+      border-color: var(--green);
     }
 
     .row {
       display: flex;
       align-items: center;
       gap: 10px;
-      margin-top: 10px;
+      margin-top: 12px;
     }
 
     .row label {
-      min-width: 64px;
+      min-width: 58px;
       font-size: 13px;
-      font-weight: 600;
+      font-weight: 700;
     }
 
     .row input[type="range"] {
@@ -69,39 +130,109 @@
       width: 38px;
       text-align: right;
       font-size: 12px;
-      color: #444;
+      color: var(--muted);
     }
 
-    button {
+    .actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    button.action {
       border: 0;
-      border-radius: 7px;
-      padding: 8px 10px;
-      background: #1f6f43;
+      border-radius: 8px;
+      padding: 9px 11px;
+      background: var(--green);
       color: white;
       cursor: pointer;
-      font-weight: 600;
+      font-weight: 700;
     }
 
-    button:hover {
-      filter: brightness(.95);
+    button.action:hover {
+      background: var(--green-dark);
+    }
+
+    .legend {
+      display: none;
+      margin-top: 14px;
+    }
+
+    .legend.visible {
+      display: block;
+    }
+
+    .legend-title {
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .legend-subtitle {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    .gradient {
+      height: 15px;
+      border-radius: 999px;
+      margin-top: 8px;
+      border: 1px solid rgba(0,0,0,.1);
+      background: linear-gradient(
+        90deg,
+        rgb(165,0,38) 0%,
+        rgb(215,48,39) 20%,
+        rgb(244,109,67) 50%,
+        rgb(254,224,139) 65%,
+        rgb(217,239,139) 75%,
+        rgb(102,189,99) 85%,
+        rgb(0,104,55) 100%
+      );
+    }
+
+    .legend-scale {
+      display: flex;
+      justify-content: space-between;
+      font-size: 10px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    .legend-notes {
+      margin-top: 8px;
+      display: grid;
+      gap: 3px;
+    }
+
+    .legend-note {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      font-size: 11px;
+      color: #46544b;
     }
 
     .status {
-      margin-top: 10px;
-      font-size: 12px;
-      color: #555;
-      line-height: 1.4;
+      margin-top: 12px;
+      font-size: 11px;
+      line-height: 1.45;
+      color: var(--muted);
     }
 
     .maplibregl-ctrl-attrib {
       font-size: 10px;
     }
 
-    @media (max-width: 620px) {
+    @media (max-width: 650px) {
       .panel {
         top: 8px;
         left: 8px;
         width: calc(100vw - 16px);
+        padding: 13px;
+      }
+
+      h1 {
+        font-size: 18px;
       }
     }
   </style>
@@ -111,131 +242,291 @@
   <div id="map"></div>
 
   <div class="panel">
-    <h1>Towal Creek — RGB Ortho</h1>
-    <div class="sub">29 Aug 2026 · proof of concept</div>
+    <div class="eyebrow">Southern Skies Agritech</div>
+    <h1 id="title">Loading survey…</h1>
+    <div class="meta" id="meta"></div>
 
-    <div class="row">
-      <label for="orthoToggle">Ortho</label>
-      <input id="orthoToggle" type="checkbox" checked />
-    </div>
+    <div class="section">
+      <div class="section-title">Imagery</div>
 
-    <div class="row">
-      <label for="opacity">Opacity</label>
-      <input id="opacity" type="range" min="0" max="100" value="100" />
-      <output id="opacityValue">100%</output>
-    </div>
+      <div class="layer-tabs" id="layerTabs"></div>
 
-    <div class="row">
-      <button id="fitBtn" type="button">Fit survey</button>
-    </div>
+      <div class="row">
+        <label for="opacity">Opacity</label>
+        <input id="opacity" type="range" min="0" max="100" value="100" />
+        <output id="opacityValue">100%</output>
+      </div>
 
-    <div class="status" id="status">
-      Loading map…
+      <div class="actions">
+        <button class="action" id="fitBtn" type="button">Fit survey</button>
+      </div>
+
+      <div class="legend" id="legend">
+        <div class="legend-title" id="legendTitle"></div>
+        <div class="legend-subtitle" id="legendSubtitle"></div>
+
+        <div class="gradient"></div>
+
+        <div class="legend-scale">
+          <span>-1.0</span>
+          <span>0</span>
+          <span>0.5</span>
+          <span>1.0</span>
+        </div>
+
+        <div class="legend-notes" id="legendNotes"></div>
+      </div>
+
+      <div class="status" id="status">
+        Loading map…
+      </div>
     </div>
   </div>
 
   <script src="https://unpkg.com/maplibre-gl@5.7.3/dist/maplibre-gl.js"></script>
+
   <script>
-    // Bounds taken from GDAL output for Terra result.tif.
-    const SURVEY_BOUNDS = [
-      [152.3650913, -30.8151665], // southwest
-      [152.3728435, -30.8095780]  // northeast
-    ];
+    (async function () {
+      const status = document.getElementById('status');
+      let survey;
 
-    const map = new maplibregl.Map({
-      container: 'map',
-      center: [152.3689674, -30.8123723],
-      zoom: 16,
-      attributionControl: true,
-      style: {
-        version: 8,
-        sources: {
-          osm: {
-            type: 'raster',
-            tiles: [
-              'https://tile.openstreetmap.org/{z}/{x}/{y}.png'
-            ],
-            tileSize: 256,
-            attribution: '© OpenStreetMap contributors',
-            maxzoom: 19
-          }
-        },
-        layers: [
-          {
-            id: 'osm',
-            type: 'raster',
-            source: 'osm'
-          }
-        ]
+      try {
+        const res = await fetch('./survey.json', { cache: 'no-store' });
+
+        if (!res.ok) {
+          throw new Error('survey.json returned HTTP ' + res.status);
+        }
+
+        survey = await res.json();
+      } catch (err) {
+        status.textContent = 'Could not load survey.json: ' + err.message;
+        console.error(err);
+        return;
       }
-    });
 
-    map.addControl(new maplibregl.NavigationControl(), 'top-right');
-    map.addControl(new maplibregl.FullscreenControl(), 'top-right');
+      document.getElementById('title').textContent = survey.property;
 
-    map.on('load', () => {
-      map.addSource('towal-rgb', {
-        type: 'raster',
-        tiles: [
-          'https://maps.southernskiesagritech.com.au/towal-creek/2026-08-29/rgb/{z}/{x}/{y}.png'
-        ],
-        tileSize: 256,
-        minzoom: 14,
-        maxzoom: 20,
-        scheme: 'tms'
-      });
+      document.getElementById('meta').textContent =
+        `${survey.paddock} · ${survey.dateLabel}`;
 
-      map.addLayer({
-        id: 'towal-rgb-layer',
-        type: 'raster',
-        source: 'towal-rgb',
-        paint: {
-          'raster-opacity': 1
+      const map = new maplibregl.Map({
+        container: 'map',
+        center: survey.center,
+        zoom: 16,
+        attributionControl: true,
+
+        style: {
+          version: 8,
+
+          sources: {
+            osm: {
+              type: 'raster',
+              tiles: [
+                'https://tile.openstreetmap.org/{z}/{x}/{y}.png'
+              ],
+              tileSize: 256,
+              attribution: '© OpenStreetMap contributors',
+              maxzoom: 19
+            }
+          },
+
+          layers: [
+            {
+              id: 'osm',
+              type: 'raster',
+              source: 'osm'
+            }
+          ]
         }
       });
 
-      map.fitBounds(SURVEY_BOUNDS, {
-        padding: 60,
-        maxZoom: 19
-      });
+      map.addControl(
+        new maplibregl.NavigationControl(),
+        'top-right'
+      );
 
-      document.getElementById('status').textContent =
-        'RGB orthomosaic enabled. Use the slider to compare it with the basemap.';
-    });
+      map.addControl(
+        new maplibregl.FullscreenControl(),
+        'top-right'
+      );
 
-    map.on('error', (e) => {
-      console.error('MapLibre error:', e && e.error ? e.error : e);
-      const status = document.getElementById('status');
-      status.textContent =
-        'A map resource failed to load. Open browser DevTools → Console for details (often CORS or a tile URL issue).';
-    });
+      let activeKey = 'rgb';
 
-    const opacity = document.getElementById('opacity');
-    const opacityValue = document.getElementById('opacityValue');
-    opacity.addEventListener('input', () => {
-      const value = Number(opacity.value) / 100;
-      opacityValue.value = opacity.value + '%';
-      if (map.getLayer('towal-rgb-layer')) {
-        map.setPaintProperty('towal-rgb-layer', 'raster-opacity', value);
-      }
-    });
-
-    document.getElementById('orthoToggle').addEventListener('change', (e) => {
-      if (map.getLayer('towal-rgb-layer')) {
-        map.setLayoutProperty(
-          'towal-rgb-layer',
-          'visibility',
-          e.target.checked ? 'visible' : 'none'
+      function fitSurvey() {
+        map.fitBounds(
+          survey.bounds,
+          {
+            padding: 60,
+            maxZoom: 19
+          }
         );
       }
-    });
 
-    document.getElementById('fitBtn').addEventListener('click', () => {
-      map.fitBounds(SURVEY_BOUNDS, {
-        padding: 60,
-        maxZoom: 19
+      function setLegend(layer) {
+        const legend = document.getElementById('legend');
+
+        if (!layer.legend) {
+          legend.classList.remove('visible');
+          return;
+        }
+
+        document.getElementById('legendTitle').textContent =
+          layer.legend.title || layer.label;
+
+        document.getElementById('legendSubtitle').textContent =
+          layer.legend.subtitle || '';
+
+        const notes = document.getElementById('legendNotes');
+        notes.innerHTML = '';
+
+        (layer.legend.ticks || []).forEach(tick => {
+          const row = document.createElement('div');
+          row.className = 'legend-note';
+
+          row.innerHTML =
+            `<span>${tick.label}</span><strong>${tick.value}</strong>`;
+
+          notes.appendChild(row);
+        });
+
+        legend.classList.add('visible');
+      }
+
+      function setActiveLayer(key) {
+        activeKey = key;
+
+        Object.keys(survey.layers).forEach(layerKey => {
+          const layerId = `survey-${layerKey}-layer`;
+
+          if (map.getLayer(layerId)) {
+            map.setLayoutProperty(
+              layerId,
+              'visibility',
+              layerKey === key ? 'visible' : 'none'
+            );
+          }
+
+          const button =
+            document.querySelector(`[data-layer="${layerKey}"]`);
+
+          if (button) {
+            button.classList.toggle(
+              'active',
+              layerKey === key
+            );
+          }
+        });
+
+        setLegend(survey.layers[key]);
+
+        status.textContent =
+          `${survey.layers[key].label} layer enabled.`;
+      }
+
+      const tabs = document.getElementById('layerTabs');
+
+      Object.entries(survey.layers).forEach(([key, layer]) => {
+        const button = document.createElement('button');
+
+        button.className =
+          'layer-btn' + (key === activeKey ? ' active' : '');
+
+        button.type = 'button';
+        button.dataset.layer = key;
+        button.textContent = layer.label;
+
+        button.addEventListener(
+          'click',
+          () => setActiveLayer(key)
+        );
+
+        tabs.appendChild(button);
       });
-    });
+
+      map.on('load', () => {
+        Object.entries(survey.layers).forEach(([key, layer]) => {
+          map.addSource(
+            `survey-${key}`,
+            {
+              type: 'raster',
+              tiles: [layer.tiles],
+              tileSize: 256,
+              minzoom: layer.minzoom || 14,
+              maxzoom: layer.maxzoom || 20,
+              scheme: layer.scheme || 'tms'
+            }
+          );
+
+          map.addLayer({
+            id: `survey-${key}-layer`,
+            type: 'raster',
+            source: `survey-${key}`,
+
+            layout: {
+              visibility:
+                key === activeKey ? 'visible' : 'none'
+            },
+
+            paint: {
+              'raster-opacity': 1
+            }
+          });
+        });
+
+        fitSurvey();
+        setLegend(survey.layers[activeKey]);
+
+        status.textContent =
+          'RGB orthomosaic enabled.';
+      });
+
+      map.on('error', (event) => {
+        console.error(
+          'MapLibre error:',
+          event && event.error ? event.error : event
+        );
+
+        status.textContent =
+          'A map resource failed to load. Check DevTools → Console.';
+      });
+
+      document
+        .getElementById('fitBtn')
+        .addEventListener(
+          'click',
+          fitSurvey
+        );
+
+      const opacity =
+        document.getElementById('opacity');
+
+      const opacityValue =
+        document.getElementById('opacityValue');
+
+      opacity.addEventListener(
+        'input',
+        () => {
+          const value =
+            Number(opacity.value) / 100;
+
+          opacityValue.value =
+            opacity.value + '%';
+
+          Object.keys(survey.layers).forEach(key => {
+            const layerId =
+              `survey-${key}-layer`;
+
+            if (map.getLayer(layerId)) {
+              map.setPaintProperty(
+                layerId,
+                'raster-opacity',
+                value
+              );
+            }
+          });
+        }
+      );
+    })();
   </script>
 </body>
 </html>
