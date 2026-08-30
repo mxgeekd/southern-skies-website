@@ -535,23 +535,15 @@
                */
 
               esriSatellite: {
-
-                type: 'raster',
-
-                tiles: [
-
-                  `https://static-map-tiles-api.arcgis.com/arcgis/rest/services/static-basemap-tiles-service/v1/arcgis/imagery/static/tile/{z}/{y}/{x}?token=${ESRI_API_KEY}`
-
-                ],
-
-                tileSize: 512,
-
-                maxzoom: 23,
-
-                attribution:
-                  'Esri, Maxar, Earthstar Geographics, and the GIS User Community'
-              }
-
+  type: 'raster',
+  tiles: [
+    `https://static-map-tiles-api.arcgis.com/arcgis/rest/services/static-basemap-tiles-service/v1/arcgis/imagery/static/tile/{z}/{y}/{x}?token=${encodeURIComponent(ESRI_API_KEY)}`
+  ],
+  tileSize: 512,
+  minzoom: 0,
+  maxzoom: 23,
+  attribution: 'Esri'
+}
             },
 
 
