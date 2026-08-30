@@ -1,19 +1,12 @@
 <!doctype html>
 <html lang="en">
-
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-
   <title>Southern Skies Agritech — Field Viewer</title>
-
-  <link
-    rel="stylesheet"
-    href="https://unpkg.com/maplibre-gl@5.7.3/dist/maplibre-gl.css"
-  >
+  <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5.7.3/dist/maplibre-gl.css">
 
   <style>
-
     :root {
       --panel: rgba(255,255,255,.97);
       --ink: #172019;
@@ -23,8 +16,7 @@
       --border: #dbe4dd;
     }
 
-    html,
-    body {
+    html, body {
       margin: 0;
       width: 100%;
       height: 100%;
@@ -33,10 +25,7 @@
       color: var(--ink);
     }
 
-    #map {
-      position: absolute;
-      inset: 0;
-    }
+    #map { position: absolute; inset: 0; }
 
     .panel {
       position: absolute;
@@ -63,17 +52,8 @@
       margin-bottom: 5px;
     }
 
-    h1 {
-      margin: 0;
-      font-size: 20px;
-      line-height: 1.2;
-    }
-
-    .meta {
-      margin-top: 4px;
-      color: var(--muted);
-      font-size: 13px;
-    }
+    h1 { margin: 0; font-size: 20px; line-height: 1.2; }
+    .meta { margin-top: 4px; color: var(--muted); font-size: 13px; }
 
     .section {
       margin-top: 16px;
@@ -96,11 +76,9 @@
       gap: 7px;
     }
 
-    .basemap-tabs {
-      grid-template-columns: repeat(2, 1fr);
-    }
+    .basemap-tabs { grid-template-columns: repeat(2, 1fr); }
 
-    .layer-btn {
+    .layer-btn, .survey-select {
       appearance: none;
       border: 1px solid #cfd9d2;
       background: #f7faf8;
@@ -108,18 +86,18 @@
       padding: 9px 8px;
       border-radius: 8px;
       font-weight: 700;
-      cursor: pointer;
     }
 
-    .layer-btn:hover {
-      background: #edf4ef;
-    }
+    .layer-btn { cursor: pointer; }
+    .layer-btn:hover { background: #edf4ef; }
 
     .layer-btn.active {
       background: var(--green);
       color: #fff;
       border-color: var(--green);
     }
+
+    .survey-select { width: 100%; cursor: pointer; }
 
     .row {
       display: flex;
@@ -128,28 +106,11 @@
       margin-top: 12px;
     }
 
-    .row label {
-      min-width: 58px;
-      font-size: 13px;
-      font-weight: 700;
-    }
+    .row label { min-width: 58px; font-size: 13px; font-weight: 700; }
+    .row input[type="range"] { flex: 1; }
+    .row output { width: 38px; text-align: right; font-size: 12px; color: var(--muted); }
 
-    .row input[type="range"] {
-      flex: 1;
-    }
-
-    .row output {
-      width: 38px;
-      text-align: right;
-      font-size: 12px;
-      color: var(--muted);
-    }
-
-    .actions {
-      display: flex;
-      gap: 8px;
-      margin-top: 12px;
-    }
+    .actions { display: flex; gap: 8px; margin-top: 12px; }
 
     button.action {
       border: 0;
@@ -161,36 +122,18 @@
       font-weight: 700;
     }
 
-    button.action:hover {
-      background: var(--green-dark);
-    }
+    button.action:hover { background: var(--green-dark); }
 
-    .legend {
-      display: none;
-      margin-top: 14px;
-    }
-
-    .legend.visible {
-      display: block;
-    }
-
-    .legend-title {
-      font-size: 13px;
-      font-weight: 700;
-    }
-
-    .legend-subtitle {
-      font-size: 11px;
-      color: var(--muted);
-      margin-top: 2px;
-    }
+    .legend { display: none; margin-top: 14px; }
+    .legend.visible { display: block; }
+    .legend-title { font-size: 13px; font-weight: 700; }
+    .legend-subtitle { font-size: 11px; color: var(--muted); margin-top: 2px; }
 
     .gradient {
       height: 15px;
       border-radius: 999px;
       margin-top: 8px;
       border: 1px solid rgba(0,0,0,.1);
-
       background: linear-gradient(
         90deg,
         rgb(165,0,38) 0%,
@@ -211,11 +154,7 @@
       margin-top: 4px;
     }
 
-    .legend-notes {
-      margin-top: 8px;
-      display: grid;
-      gap: 3px;
-    }
+    .legend-notes { margin-top: 8px; display: grid; gap: 3px; }
 
     .legend-note {
       display: flex;
@@ -232,278 +171,441 @@
       color: var(--muted);
     }
 
-    .maplibregl-ctrl-attrib {
-      font-size: 10px;
-    }
+    .maplibregl-ctrl-attrib { font-size: 10px; }
 
     @media (max-width: 650px) {
-
       .panel {
         top: 8px;
         left: 8px;
         width: calc(100vw - 16px);
         padding: 13px;
       }
-
-      h1 {
-        font-size: 18px;
-      }
-
+      h1 { font-size: 18px; }
     }
-
   </style>
 </head>
 
-
 <body>
-
   <div id="map"></div>
 
-
   <div class="panel">
-
-    <div class="eyebrow">
-      Southern Skies Agritech
-    </div>
-
-    <h1 id="title">
-      Loading survey...
-    </h1>
-
-    <div
-      class="meta"
-      id="meta">
-    </div>
-
-
-    <!-- BASEMAP -->
+    <div class="eyebrow">Southern Skies Agritech</div>
+    <h1 id="title">Towal Creek</h1>
+    <div class="meta" id="meta">Loading survey...</div>
 
     <div class="section">
+      <div class="section-title">Paddock</div>
+      <select id="surveySelect" class="survey-select"></select>
+    </div>
 
-      <div class="section-title">
-        Basemap
-      </div>
-
+    <div class="section">
+      <div class="section-title">Basemap</div>
       <div class="layer-tabs basemap-tabs">
-
-        <button
-          class="layer-btn active"
-          id="mapBasemapBtn"
-          type="button">
-          Map
-        </button>
-
-        <button
-          class="layer-btn"
-          id="satelliteBasemapBtn"
-          type="button">
-          Satellite
-        </button>
-
+        <button class="layer-btn active" id="mapBasemapBtn" type="button">Map</button>
+        <button class="layer-btn" id="satelliteBasemapBtn" type="button">Satellite</button>
       </div>
-
     </div>
 
-
-    <!-- SURVEY IMAGERY -->
-
     <div class="section">
-
-      <div class="section-title">
-        Imagery
-      </div>
-
-      <div
-        class="layer-tabs"
-        id="layerTabs">
-      </div>
-
+      <div class="section-title">Imagery</div>
+      <div class="layer-tabs" id="layerTabs"></div>
 
       <div class="row">
-
-        <label for="opacity">
-          Opacity
-        </label>
-
-        <input
-          id="opacity"
-          type="range"
-          min="0"
-          max="100"
-          value="100"
-        >
-
-        <output id="opacityValue">
-          100%
-        </output>
-
+        <label for="opacity">Opacity</label>
+        <input id="opacity" type="range" min="0" max="100" value="100">
+        <output id="opacityValue">100%</output>
       </div>
-
 
       <div class="actions">
-
-        <button
-          class="action"
-          id="fitBtn"
-          type="button">
-          Fit survey
-        </button>
-
+        <button class="action" id="fitBtn" type="button">Fit survey</button>
       </div>
 
-
-      <div
-        class="legend"
-        id="legend">
-
-        <div
-          class="legend-title"
-          id="legendTitle">
-        </div>
-
-        <div
-          class="legend-subtitle"
-          id="legendSubtitle">
-        </div>
-
+      <div class="legend" id="legend">
+        <div class="legend-title" id="legendTitle"></div>
+        <div class="legend-subtitle" id="legendSubtitle"></div>
         <div class="gradient"></div>
-
         <div class="legend-scale">
-          <span>-1.0</span>
-          <span>0</span>
-          <span>0.5</span>
-          <span>1.0</span>
+          <span>-1.0</span><span>0</span><span>0.5</span><span>1.0</span>
         </div>
-
-        <div
-          class="legend-notes"
-          id="legendNotes">
-        </div>
-
+        <div class="legend-notes" id="legendNotes"></div>
       </div>
 
-
-      <div
-        class="status"
-        id="status">
-        Loading map...
-      </div>
-
+      <div class="status" id="status">Loading map...</div>
     </div>
-
   </div>
-
 
   <script src="https://unpkg.com/maplibre-gl@5.7.3/dist/maplibre-gl.js"></script>
 
-
   <script>
-
     (async function () {
 
+      /* =========================================================
+         API KEY — THIS IS THE ONLY API KEY TO REPLACE
+         =========================================================
+         Search this file for:
+         REPLACE_WITH_YOUR_ARCGIS_API_KEY
+      */
+      const ESRI_API_KEY = 'AAPTagPaE_90QGccsyzPLnRE4Cg..TvuUowd1TLpfnMBY81AHr82_9fY59SLQRn83OCQYB7I2KR7Ol1ZFgX-4-FArM1-ZhG9XLxQ87w-7NPCjch6dl2wObSko4Yz2A0uqBbL_p_kzZ-dVw9BVx4tYoC9ZmGnYwIm_3GJuFVszijxgo_-yXWzuHaqJweNucXYceuC2gg4UVt2CDwJ5GGbAlCRI8d9xdEdIdhqPa9Aggs3AIdd_62oyvNjkROBYcEit02g7f90eJ6DRjWJpsA..AT1_6PqmzSJc';
 
-      /*
-       * ==========================================================
-       * ARCGIS API KEY
-       * ==========================================================
-       */
-
-      const ESRI_API_KEY =
-        'AAPTagPaE_90QGccsyzPLnRE4Cg..TvuUowd1TLpfnMBY81AHr82_9fY59SLQRn83OCQYB7I2KR7Ol1ZFgX-4-FArM1-ZhG9XLxQ87w-7NPCjch6dl2wObSko4Yz2A0uqBbL_p_kzZ-dVw9BVx4tYoC9ZmGnYwIm_3GJuFVszijxgo_-yXWzuHaqJweNucXYceuC2gg4UVt2CDwJ5GGbAlCRI8d9xdEdIdhqPa9Aggs3AIdd_62oyvNjkROBYcEit02g7f90eJ6DRjWJpsA..AT1_6PqmzSJc';
-
-
-      /*
-       * ==========================================================
-       * ELEMENTS
-       * ==========================================================
-       */
-
-      const status =
-        document.getElementById('status');
-
-      const tabs =
-        document.getElementById('layerTabs');
-
-      const opacity =
-        document.getElementById('opacity');
-
-      const opacityValue =
-        document.getElementById('opacityValue');
-
-      const mapBasemapBtn =
-        document.getElementById('mapBasemapBtn');
-
-      const satelliteBasemapBtn =
-        document.getElementById('satelliteBasemapBtn');
-
-
-      /*
-       * ==========================================================
-       * LOAD SURVEY.JSON
-       * ==========================================================
-       */
-
-      let survey;
-
-      try {
-
-        const response =
-          await fetch(
-            './survey.json',
-            {
-              cache: 'no-store'
+      /* =========================================================
+         SURVEY CATALOGUE
+         Both Towal Creek surveys are built into this file.
+         ========================================================= */
+      const catalogue = {
+        property: 'Towal Creek',
+        surveys: [
+          {
+            id: 'demo-paddock-2026-08-29',
+            paddock: 'Demo Paddock',
+            date: '2026-08-29',
+            dateLabel: '29 Aug 2026',
+            bounds: [
+              [152.3650913, -30.8151665],
+              [152.3728435, -30.8095780]
+            ],
+            center: [152.3689674, -30.8123723],
+            layers: {
+              rgb: {
+                label: 'RGB',
+                tiles: 'https://maps.southernskiesagritech.com.au/towal-creek/2026-08-29/rgb/{z}/{x}/{y}.png',
+                scheme: 'tms',
+                minzoom: 14,
+                maxzoom: 20,
+                legend: null
+              },
+              ndvi: {
+                label: 'NDVI',
+                tiles: 'https://maps.southernskiesagritech.com.au/towal-creek/2026-08-29/ndvi/{z}/{x}/{y}.png',
+                scheme: 'tms',
+                minzoom: 14,
+                maxzoom: 20,
+                legend: {
+                  title: 'NDVI',
+                  subtitle: 'Vegetation vigour index',
+                  ticks: [
+                    { value: '-1.0', label: 'Very low / non-vegetation' },
+                    { value: '0.0', label: 'Bare / non-vegetation' },
+                    { value: '0.4', label: 'Moderate' },
+                    { value: '0.6', label: 'Strong' },
+                    { value: '0.8+', label: 'Very strong' }
+                  ]
+                }
+              },
+              gndvi: {
+                label: 'GNDVI',
+                tiles: 'https://maps.southernskiesagritech.com.au/towal-creek/2026-08-29/gndvi/{z}/{x}/{y}.png',
+                scheme: 'tms',
+                minzoom: 14,
+                maxzoom: 20,
+                legend: {
+                  title: 'GNDVI',
+                  subtitle: 'Green chlorophyll / canopy response',
+                  ticks: [
+                    { value: '-1.0', label: 'Very low / non-vegetation' },
+                    { value: '0.0', label: 'Bare / non-vegetation' },
+                    { value: '0.4', label: 'Moderate' },
+                    { value: '0.6', label: 'Strong' },
+                    { value: '0.8+', label: 'Very strong' }
+                  ]
+                }
+              }
             }
-          );
+          },
 
-        if (!response.ok) {
+          {
+            id: 'paddock-1-2-2026-08-29',
+            paddock: 'Paddock 1 + 2',
+            date: '2026-08-29',
+            dateLabel: '29 Aug 2026',
+            bounds: [
+              [152.3701247, -30.8110960],
+              [152.3766099, -30.8080951]
+            ],
+            center: [152.3733673, -30.8095955],
+            layers: {
+              rgb: {
+                label: 'RGB',
+                tiles: 'https://maps.southernskiesagritech.com.au/towal-creek/2026-08-29/paddock-1-2/rgb/{z}/{x}/{y}.png',
+                scheme: 'tms',
+                minzoom: 14,
+                maxzoom: 20,
+                legend: null
+              },
+              ndvi: {
+                label: 'NDVI',
+                tiles: 'https://maps.southernskiesagritech.com.au/towal-creek/2026-08-29/paddock-1-2/ndvi/{z}/{x}/{y}.png',
+                scheme: 'tms',
+                minzoom: 14,
+                maxzoom: 20,
+                legend: {
+                  title: 'NDVI',
+                  subtitle: 'Vegetation vigour index',
+                  ticks: [
+                    { value: '-1.0', label: 'Very low / non-vegetation' },
+                    { value: '0.0', label: 'Bare / non-vegetation' },
+                    { value: '0.4', label: 'Moderate' },
+                    { value: '0.6', label: 'Strong' },
+                    { value: '0.8+', label: 'Very strong' }
+                  ]
+                }
+              },
+              gndvi: {
+                label: 'GNDVI',
+                tiles: 'https://maps.southernskiesagritech.com.au/towal-creek/2026-08-29/paddock-1-2/gndvi/{z}/{x}/{y}.png',
+                scheme: 'tms',
+                minzoom: 14,
+                maxzoom: 20,
+                legend: {
+                  title: 'GNDVI',
+                  subtitle: 'Green chlorophyll / canopy response',
+                  ticks: [
+                    { value: '-1.0', label: 'Very low / non-vegetation' },
+                    { value: '0.0', label: 'Bare / non-vegetation' },
+                    { value: '0.4', label: 'Moderate' },
+                    { value: '0.6', label: 'Strong' },
+                    { value: '0.8+', label: 'Very strong' }
+                  ]
+                }
+              }
+            }
+          }
+        ]
+      };
 
-          throw new Error(
-            'survey.json returned HTTP ' +
-            response.status
-          );
+      const status = document.getElementById('status');
+      const tabs = document.getElementById('layerTabs');
+      const opacity = document.getElementById('opacity');
+      const opacityValue = document.getElementById('opacityValue');
+      const mapBasemapBtn = document.getElementById('mapBasemapBtn');
+      const satelliteBasemapBtn = document.getElementById('satelliteBasemapBtn');
+      const surveySelect = document.getElementById('surveySelect');
 
+      let survey = catalogue.surveys[0];
+      let map;
+      let activeKey = 'rgb';
+      let surveyOpacity = 1;
+      let esriLayerIds = [];
+
+      function setStatus(message) {
+        status.textContent = message;
+      }
+
+      function rasterBoundsFor(item) {
+        return [
+          item.bounds[0][0],
+          item.bounds[0][1],
+          item.bounds[1][0],
+          item.bounds[1][1]
+        ];
+      }
+
+      function fitSurvey() {
+        if (!map || !survey) return;
+        map.fitBounds(survey.bounds, { padding: 60, maxZoom: 19 });
+      }
+
+      function updateHeading() {
+        document.getElementById('title').textContent = catalogue.property;
+        document.getElementById('meta').textContent =
+          survey.paddock + ' · ' + survey.dateLabel;
+      }
+
+      function populateSurveySelect() {
+        surveySelect.innerHTML = '';
+        catalogue.surveys.forEach(function (item) {
+          const option = document.createElement('option');
+          option.value = item.id;
+          option.textContent = item.paddock + ' — ' + item.dateLabel;
+          surveySelect.appendChild(option);
+        });
+        surveySelect.value = survey.id;
+      }
+
+      function setLegend(layer) {
+        const legend = document.getElementById('legend');
+
+        if (!layer || !layer.legend) {
+          legend.classList.remove('visible');
+          return;
         }
 
-        survey =
-          await response.json();
+        document.getElementById('legendTitle').textContent =
+          layer.legend.title || layer.label;
 
+        document.getElementById('legendSubtitle').textContent =
+          layer.legend.subtitle || '';
+
+        const notes = document.getElementById('legendNotes');
+        notes.innerHTML = '';
+
+        (layer.legend.ticks || []).forEach(function (tick) {
+          const row = document.createElement('div');
+          row.className = 'legend-note';
+
+          const label = document.createElement('span');
+          label.textContent = tick.label;
+
+          const value = document.createElement('strong');
+          value.textContent = tick.value;
+
+          row.appendChild(label);
+          row.appendChild(value);
+          notes.appendChild(row);
+        });
+
+        legend.classList.add('visible');
       }
-      catch (error) {
 
-        console.error(error);
+      function rebuildImageryButtons() {
+        tabs.innerHTML = '';
 
-        status.textContent =
-          'Could not load survey.json: ' +
-          error.message;
+        Object.keys(survey.layers).forEach(function (key) {
+          const layer = survey.layers[key];
+          const button = document.createElement('button');
 
-        return;
+          button.className =
+            'layer-btn' + (key === activeKey ? ' active' : '');
 
+          button.type = 'button';
+          button.dataset.layer = key;
+          button.textContent = layer.label;
+
+          button.addEventListener('click', function () {
+            setActiveLayer(key);
+          });
+
+          tabs.appendChild(button);
+        });
       }
 
+      function setActiveLayer(key) {
+        if (!survey.layers[key]) key = 'rgb';
+        activeKey = key;
 
-      document
-        .getElementById('title')
-        .textContent =
-        survey.property;
+        Object.keys(survey.layers).forEach(function (layerKey) {
+          const layerId = 'survey-' + layerKey + '-layer';
 
+          if (map.getLayer(layerId)) {
+            map.setLayoutProperty(
+              layerId,
+              'visibility',
+              layerKey === activeKey ? 'visible' : 'none'
+            );
+          }
 
-      document
-        .getElementById('meta')
-        .textContent =
-        survey.paddock +
-        ' · ' +
-        survey.dateLabel;
+          const button = document.querySelector(
+            '[data-layer="' + layerKey + '"]'
+          );
 
+          if (button) {
+            button.classList.toggle(
+              'active',
+              layerKey === activeKey
+            );
+          }
+        });
 
-      /*
-       * ==========================================================
-       * LOAD ESRI IMAGERY STYLE
-       * ==========================================================
-       *
-       * We load the Esri style once.
-       *
-       * We DO NOT use map.setStyle() later.
-       */
+        setLegend(survey.layers[activeKey]);
+        setStatus(survey.layers[activeKey].label + ' layer enabled.');
+      }
+
+      function removeCurrentSurveyLayers() {
+        Object.keys(survey.layers).forEach(function (key) {
+          const layerId = 'survey-' + key + '-layer';
+          const sourceId = 'survey-' + key;
+
+          if (map.getLayer(layerId)) map.removeLayer(layerId);
+          if (map.getSource(sourceId)) map.removeSource(sourceId);
+        });
+      }
+
+      function addCurrentSurveyLayers() {
+        const bounds = rasterBoundsFor(survey);
+
+        Object.keys(survey.layers).forEach(function (key) {
+          const layer = survey.layers[key];
+          const sourceId = 'survey-' + key;
+          const layerId = 'survey-' + key + '-layer';
+
+          map.addSource(sourceId, {
+            type: 'raster',
+            tiles: [layer.tiles],
+            tileSize: 256,
+            minzoom: layer.minzoom || 14,
+            maxzoom: layer.maxzoom || 20,
+            scheme: layer.scheme || 'tms',
+            bounds: bounds
+          });
+
+          map.addLayer({
+            id: layerId,
+            type: 'raster',
+            source: sourceId,
+            layout: {
+              visibility: key === activeKey ? 'visible' : 'none'
+            },
+            paint: {
+              'raster-opacity': surveyOpacity
+            }
+          });
+        });
+      }
+
+      function changeSurvey(id) {
+        const nextSurvey = catalogue.surveys.find(function (item) {
+          return item.id === id;
+        });
+
+        if (!nextSurvey || nextSurvey.id === survey.id) return;
+
+        removeCurrentSurveyLayers();
+        survey = nextSurvey;
+
+        if (!survey.layers[activeKey]) activeKey = 'rgb';
+
+        updateHeading();
+        rebuildImageryButtons();
+        addCurrentSurveyLayers();
+        setActiveLayer(activeKey);
+        fitSurvey();
+
+        setStatus(survey.paddock + ' loaded.');
+      }
+
+      function setBasemap(type) {
+        const satellite = type === 'satellite';
+
+        if (map.getLayer('ssa-osm')) {
+          map.setLayoutProperty(
+            'ssa-osm',
+            'visibility',
+            satellite ? 'none' : 'visible'
+          );
+        }
+
+        esriLayerIds.forEach(function (layerId) {
+          if (map.getLayer(layerId)) {
+            map.setLayoutProperty(
+              layerId,
+              'visibility',
+              satellite ? 'visible' : 'none'
+            );
+          }
+        });
+
+        mapBasemapBtn.classList.toggle('active', !satellite);
+        satelliteBasemapBtn.classList.toggle('active', satellite);
+
+        setStatus(
+          satellite
+            ? 'Satellite basemap enabled.'
+            : 'Map basemap enabled.'
+        );
+      }
+
+      updateHeading();
+      populateSurveySelect();
+      rebuildImageryButtons();
 
       const ESRI_STYLE_URL =
         'https://basemapstyles-api.arcgis.com/' +
@@ -512,889 +614,108 @@
         '?token=' +
         encodeURIComponent(ESRI_API_KEY);
 
-
       let baseStyle;
 
       try {
-
-        status.textContent =
-          'Loading basemaps...';
-
-
-        const esriResponse =
-          await fetch(
-            ESRI_STYLE_URL
-          );
-
+        setStatus('Loading basemaps...');
+        const esriResponse = await fetch(ESRI_STYLE_URL);
 
         if (!esriResponse.ok) {
-
-          throw new Error(
-            'Esri returned HTTP ' +
-            esriResponse.status
-          );
-
+          throw new Error('Esri returned HTTP ' + esriResponse.status);
         }
 
+        baseStyle = await esriResponse.json();
+      } catch (error) {
+        console.error('Could not load Esri style:', error);
 
-        baseStyle =
-          await esriResponse.json();
-
-      }
-      catch (error) {
-
-        console.error(
-          'Could not load Esri style:',
-          error
-        );
-
-
-        /*
-         * Fallback style.
-         *
-         * If Esri fails completely, the viewer still works
-         * with OpenStreetMap.
-         */
-
-        baseStyle = {
-
-          version: 8,
-
-          sources: {},
-
-          layers: []
-
-        };
-
-
-        status.textContent =
-          'Satellite unavailable. Map mode still available.';
-
+        baseStyle = { version: 8, sources: {}, layers: [] };
+        setStatus('Satellite unavailable. Map mode still available.');
       }
 
+      if (!baseStyle.sources) baseStyle.sources = {};
+      if (!baseStyle.layers) baseStyle.layers = [];
 
-      /*
-       * ==========================================================
-       * IDENTIFY ESRI LAYERS
-       * ==========================================================
-       *
-       * Save their IDs BEFORE we add our own OSM layer.
-       */
-
-      const esriLayerIds =
-        (baseStyle.layers || [])
-          .map(
-            function (layer) {
-              return layer.id;
-            }
-          );
-
-
-      /*
-       * Start Esri hidden.
-       */
-
-      (baseStyle.layers || [])
-        .forEach(
-          function (layer) {
-
-            if (!layer.layout) {
-              layer.layout = {};
-            }
-
-            layer.layout.visibility =
-              'none';
-
-          }
-        );
-
-
-      /*
-       * ==========================================================
-       * ADD OSM TO SAME STYLE
-       * ==========================================================
-       */
-
-      if (!baseStyle.sources) {
-        baseStyle.sources = {};
-      }
-
-
-      baseStyle.sources.ssa_osm = {
-
-        type: 'raster',
-
-        tiles: [
-          'https://tile.openstreetmap.org/{z}/{x}/{y}.png'
-        ],
-
-        tileSize: 256,
-
-        maxzoom: 19,
-
-        attribution:
-          '© OpenStreetMap contributors'
-
-      };
-
-
-      /*
-       * Put OSM at the bottom of the layer stack.
-       */
-
-      baseStyle.layers.unshift({
-
-        id:
-          'ssa-osm',
-
-        type:
-          'raster',
-
-        source:
-          'ssa_osm',
-
-        layout: {
-
-          visibility:
-            'visible'
-
-        }
-
+      esriLayerIds = baseStyle.layers.map(function (layer) {
+        return layer.id;
       });
 
+      baseStyle.layers.forEach(function (layer) {
+        if (!layer.layout) layer.layout = {};
+        layer.layout.visibility = 'none';
+      });
 
-      /*
-       * ==========================================================
-       * CREATE MAP
-       * ==========================================================
-       */
+      baseStyle.sources.ssa_osm = {
+        type: 'raster',
+        tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
+        tileSize: 256,
+        maxzoom: 19,
+        attribution: '© OpenStreetMap contributors'
+      };
 
-      const map =
-        new maplibregl.Map({
+      baseStyle.layers.unshift({
+        id: 'ssa-osm',
+        type: 'raster',
+        source: 'ssa_osm',
+        layout: { visibility: 'visible' }
+      });
 
-          container:
-            'map',
+      map = new maplibregl.Map({
+        container: 'map',
+        center: survey.center,
+        zoom: 16,
+        attributionControl: true,
+        style: baseStyle
+      });
 
-          center:
-            survey.center,
+      map.addControl(new maplibregl.NavigationControl(), 'top-right');
+      map.addControl(new maplibregl.FullscreenControl(), 'top-right');
 
-          zoom:
-            16,
+      map.on('load', function () {
+        addCurrentSurveyLayers();
+        fitSurvey();
+        setLegend(survey.layers[activeKey]);
+        setStatus('RGB orthomosaic enabled.');
+      });
 
-          attributionControl:
-            true,
+      map.on('error', function (event) {
+        console.error(
+          'MapLibre:',
+          event && event.error ? event.error : event
+        );
+      });
 
-          style:
-            baseStyle
+      mapBasemapBtn.addEventListener('click', function () {
+        setBasemap('map');
+      });
 
+      satelliteBasemapBtn.addEventListener('click', function () {
+        setBasemap('satellite');
+      });
+
+      surveySelect.addEventListener('change', function () {
+        changeSurvey(surveySelect.value);
+      });
+
+      document.getElementById('fitBtn').addEventListener('click', fitSurvey);
+
+      opacity.addEventListener('input', function () {
+        surveyOpacity = Number(opacity.value) / 100;
+        opacityValue.value = opacity.value + '%';
+
+        Object.keys(survey.layers).forEach(function (key) {
+          const layerId = 'survey-' + key + '-layer';
+
+          if (map.getLayer(layerId)) {
+            map.setPaintProperty(
+              layerId,
+              'raster-opacity',
+              surveyOpacity
+            );
+          }
         });
-
-
-      map.addControl(
-        new maplibregl.NavigationControl(),
-        'top-right'
-      );
-
-
-      map.addControl(
-        new maplibregl.FullscreenControl(),
-        'top-right'
-      );
-
-
-      /*
-       * ==========================================================
-       * STATE
-       * ==========================================================
-       */
-
-      let activeKey =
-        'rgb';
-
-      let surveyOpacity =
-        1;
-
-
-      /*
-       * ==========================================================
-       * SURVEY BOUNDS
-       * ==========================================================
-       *
-       * survey.bounds is:
-       *
-       * [
-       *   [west, south],
-       *   [east, north]
-       * ]
-       *
-       * MapLibre raster source wants:
-       *
-       * [west, south, east, north]
-       */
-
-      const rasterBounds = [
-
-        survey.bounds[0][0],
-
-        survey.bounds[0][1],
-
-        survey.bounds[1][0],
-
-        survey.bounds[1][1]
-
-      ];
-
-
-      /*
-       * ==========================================================
-       * FIT SURVEY
-       * ==========================================================
-       */
-
-      function fitSurvey() {
-
-        map.fitBounds(
-          survey.bounds,
-          {
-
-            padding:
-              60,
-
-            maxZoom:
-              19
-
-          }
-        );
-
-      }
-
-
-      /*
-       * ==========================================================
-       * LEGEND
-       * ==========================================================
-       */
-
-      function setLegend(layer) {
-
-        const legend =
-          document.getElementById(
-            'legend'
-          );
-
-
-        if (!layer.legend) {
-
-          legend
-            .classList
-            .remove('visible');
-
-          return;
-
-        }
-
-
-        document
-          .getElementById(
-            'legendTitle'
-          )
-          .textContent =
-          layer.legend.title ||
-          layer.label;
-
-
-        document
-          .getElementById(
-            'legendSubtitle'
-          )
-          .textContent =
-          layer.legend.subtitle ||
-          '';
-
-
-        const notes =
-          document.getElementById(
-            'legendNotes'
-          );
-
-
-        notes.innerHTML =
-          '';
-
-
-        (
-          layer.legend.ticks || []
-        )
-        .forEach(
-          function (tick) {
-
-            const row =
-              document.createElement(
-                'div'
-              );
-
-
-            row.className =
-              'legend-note';
-
-
-            const label =
-              document.createElement(
-                'span'
-              );
-
-
-            label.textContent =
-              tick.label;
-
-
-            const value =
-              document.createElement(
-                'strong'
-              );
-
-
-            value.textContent =
-              tick.value;
-
-
-            row.appendChild(
-              label
-            );
-
-
-            row.appendChild(
-              value
-            );
-
-
-            notes.appendChild(
-              row
-            );
-
-          }
-        );
-
-
-        legend
-          .classList
-          .add('visible');
-
-      }
-
-
-      /*
-       * ==========================================================
-       * BASEMAP SWITCHING
-       * ==========================================================
-       *
-       * IMPORTANT:
-       *
-       * No setStyle().
-       *
-       * We only change visibility.
-       *
-       * Therefore survey layers remain untouched.
-       */
-
-      function setBasemap(type) {
-
-        const satellite =
-          type === 'satellite';
-
-
-        /*
-         * OSM
-         */
-
-        if (
-          map.getLayer(
-            'ssa-osm'
-          )
-        ) {
-
-          map.setLayoutProperty(
-            'ssa-osm',
-            'visibility',
-            satellite
-              ? 'none'
-              : 'visible'
-          );
-
-        }
-
-
-        /*
-         * Esri layers
-         */
-
-        esriLayerIds
-          .forEach(
-            function (layerId) {
-
-              if (
-                map.getLayer(
-                  layerId
-                )
-              ) {
-
-                map.setLayoutProperty(
-                  layerId,
-                  'visibility',
-                  satellite
-                    ? 'visible'
-                    : 'none'
-                );
-
-              }
-
-            }
-          );
-
-
-        /*
-         * Buttons
-         */
-
-        mapBasemapBtn
-          .classList
-          .toggle(
-            'active',
-            !satellite
-          );
-
-
-        satelliteBasemapBtn
-          .classList
-          .toggle(
-            'active',
-            satellite
-          );
-
-
-        status.textContent =
-          satellite
-            ? 'Satellite basemap enabled.'
-            : 'Map basemap enabled.';
-
-      }
-
-
-      mapBasemapBtn
-        .addEventListener(
-          'click',
-          function () {
-
-            setBasemap(
-              'map'
-            );
-
-          }
-        );
-
-
-      satelliteBasemapBtn
-        .addEventListener(
-          'click',
-          function () {
-
-            setBasemap(
-              'satellite'
-            );
-
-          }
-        );
-
-
-      /*
-       * ==========================================================
-       * SURVEY LAYER SWITCHING
-       * ==========================================================
-       */
-
-      function setActiveLayer(key) {
-
-        activeKey =
-          key;
-
-
-        Object
-          .keys(
-            survey.layers
-          )
-          .forEach(
-            function (layerKey) {
-
-              const layerId =
-                'survey-' +
-                layerKey +
-                '-layer';
-
-
-              if (
-                map.getLayer(
-                  layerId
-                )
-              ) {
-
-                map.setLayoutProperty(
-                  layerId,
-                  'visibility',
-                  layerKey === key
-                    ? 'visible'
-                    : 'none'
-                );
-
-              }
-
-
-              const button =
-                document.querySelector(
-                  '[data-layer="' +
-                  layerKey +
-                  '"]'
-                );
-
-
-              if (button) {
-
-                button
-                  .classList
-                  .toggle(
-                    'active',
-                    layerKey === key
-                  );
-
-              }
-
-            }
-          );
-
-
-        setLegend(
-          survey.layers[
-            key
-          ]
-        );
-
-
-        status.textContent =
-          survey.layers[
-            key
-          ].label +
-          ' layer enabled.';
-
-      }
-
-
-      /*
-       * ==========================================================
-       * CREATE RGB / NDVI / GNDVI BUTTONS
-       * ==========================================================
-       */
-
-      Object
-        .keys(
-          survey.layers
-        )
-        .forEach(
-          function (key) {
-
-            const layer =
-              survey.layers[
-                key
-              ];
-
-
-            const button =
-              document.createElement(
-                'button'
-              );
-
-
-            button.className =
-              'layer-btn' +
-              (
-                key === activeKey
-                  ? ' active'
-                  : ''
-              );
-
-
-            button.type =
-              'button';
-
-
-            button.dataset.layer =
-              key;
-
-
-            button.textContent =
-              layer.label;
-
-
-            button
-              .addEventListener(
-                'click',
-                function () {
-
-                  setActiveLayer(
-                    key
-                  );
-
-                }
-              );
-
-
-            tabs.appendChild(
-              button
-            );
-
-          }
-        );
-
-
-      /*
-       * ==========================================================
-       * MAP LOAD
-       * ==========================================================
-       */
-
-      map.on(
-        'load',
-        function () {
-
-
-          /*
-           * Add all R2 survey layers.
-           *
-           * The bounds property is important:
-           *
-           * MapLibre should no longer request raster tiles
-           * outside this survey's bounding box.
-           */
-
-          Object
-            .keys(
-              survey.layers
-            )
-            .forEach(
-              function (key) {
-
-                const layer =
-                  survey.layers[
-                    key
-                  ];
-
-
-                const sourceId =
-                  'survey-' +
-                  key;
-
-
-                const layerId =
-                  'survey-' +
-                  key +
-                  '-layer';
-
-
-                map.addSource(
-                  sourceId,
-                  {
-
-                    type:
-                      'raster',
-
-                    tiles: [
-                      layer.tiles
-                    ],
-
-                    tileSize:
-                      256,
-
-                    minzoom:
-                      layer.minzoom ||
-                      14,
-
-                    maxzoom:
-                      layer.maxzoom ||
-                      20,
-
-                    scheme:
-                      layer.scheme ||
-                      'tms',
-
-                    bounds:
-                      rasterBounds
-
-                  }
-                );
-
-
-                /*
-                 * Survey layer is added LAST.
-                 *
-                 * Therefore it sits ABOVE:
-                 *
-                 * OSM
-                 * Esri satellite
-                 */
-
-                map.addLayer({
-
-                  id:
-                    layerId,
-
-                  type:
-                    'raster',
-
-                  source:
-                    sourceId,
-
-                  layout: {
-
-                    visibility:
-                      key === activeKey
-                        ? 'visible'
-                        : 'none'
-
-                  },
-
-                  paint: {
-
-                    'raster-opacity':
-                      surveyOpacity
-
-                  }
-
-                });
-
-              }
-            );
-
-
-          /*
-           * Fit initial view
-           */
-
-          fitSurvey();
-
-
-          /*
-           * Initial legend
-           */
-
-          setLegend(
-            survey.layers[
-              activeKey
-            ]
-          );
-
-
-          status.textContent =
-            'RGB orthomosaic enabled.';
-
-        }
-      );
-
-
-      /*
-       * ==========================================================
-       * FIT BUTTON
-       * ==========================================================
-       */
-
-      document
-        .getElementById(
-          'fitBtn'
-        )
-        .addEventListener(
-          'click',
-          fitSurvey
-        );
-
-
-      /*
-       * ==========================================================
-       * OPACITY
-       * ==========================================================
-       */
-
-      opacity
-        .addEventListener(
-          'input',
-          function () {
-
-            surveyOpacity =
-              Number(
-                opacity.value
-              ) / 100;
-
-
-            opacityValue.value =
-              opacity.value +
-              '%';
-
-
-            Object
-              .keys(
-                survey.layers
-              )
-              .forEach(
-                function (key) {
-
-                  const layerId =
-                    'survey-' +
-                    key +
-                    '-layer';
-
-
-                  if (
-                    map.getLayer(
-                      layerId
-                    )
-                  ) {
-
-                    map.setPaintProperty(
-                      layerId,
-                      'raster-opacity',
-                      surveyOpacity
-                    );
-
-                  }
-
-                }
-              );
-
-          }
-        );
-
-
-      /*
-       * ==========================================================
-       * ERRORS
-       * ==========================================================
-       */
-
-      map.on(
-        'error',
-        function (event) {
-
-          console.error(
-            'MapLibre:',
-            event &&
-            event.error
-              ? event.error
-              : event
-          );
-
-        }
-      );
-
+      });
 
     })();
-
   </script>
-
 </body>
 </html>
