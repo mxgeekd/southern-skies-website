@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Southern Skies Agritech — Map Test</title>
+
+  <link
+    href="https://unpkg.com/maplibre-gl@5.7.3/dist/maplibre-gl.css"
+    rel="stylesheet"
+  />
+
+  <style>
+    html, body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      font-family: Arial, Helvetica, sans-serif;
+      background: #111;
+    }
+
+    #map {
+      position: absolute;
+      inset: 0;
+    }
+
+    .panel {
+      position: absolute;
+      top: 14px;
+      left: 14px;
+      z-index: 2;
+      width: min(320px, calc(100vw - 28px));
+      background: rgba(255, 255, 255, 0.96);
+      border-radius: 10px;
+      box-shadow: 0 6px 24px rgba(0,0,0,.25);
+      padding: 14px 16px;
+      box-sizing: border-box;
+    }
+
+    .panel h1 {
+      margin: 0 0 4px;
+      font-size: 18px;
+    }
+
+    .panel .sub {
+      margin: 0 0 14px;
+      color: #555;
+      font-size: 13px;
+    }
+
+    .row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .row label {
+      min-width: 64px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .row input[type="range"] {
+      flex: 1;
+    }
+
+    .row output {
+      width: 38px;
+      text-align: right;
+      font-size: 12px;
+      color: #444;
+    }
+
+    button {
+      border: 0;
+      border-radius: 7px;
+      padding: 8px 10px;
+      background: #1f6f43;
+      color: white;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    button:hover {
+      filter: brightness(.95);
+    }
+
+    .status {
+      margin-top: 10px;
+      font-size: 12px;
+      color: #555;
+      line-height: 1.4;
+    }
+
+    .maplibregl-ctrl-attrib {
+      font-size: 10px;
+    }
+
+    @media (max-width: 620px) {
+      .panel {
+        top: 8px;
+        left: 8px;
+        width: calc(100vw - 16px);
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div id="map"></div>
+
+  <div class="panel">
+    <h1>Towal Creek — RGB Ortho</h1>
+    <div class="sub">29 Aug 2026 · proof of concept</div>
+
+    <div class="row">
+      <label for="orthoToggle">Ortho</label>
+      <input id="orthoToggle" type="checkbox" checked />
+    </div>
+
+    <div class="row">
+      <label for="opacity">Opacity</label>
+      <input id="opacity" type="range" min="0" max="100" value="100" />
+      <output id="opacityValue">100%</output>
+    </div>
+
+    <div class="row">
+      <button id="fitBtn" type="button">Fit survey</button>
+    </div>
+
+    <div class="status" id="status">
+      Loading map…
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/maplibre-gl@5.7.3/dist/maplibre-gl.js"></script>
+  <script>
+    // Bounds taken from GDAL output for Terra result.tif.
+    const SURVEY_BOUNDS = [
+      [152.3650913, -30.8151665], // southwest
+      [152.3728435, -30.8095780]  // northeast
+    ];
+
+    const map = new maplibregl.Map({
+      container: 'map',
+      center: [152.3689674, -30.8123723],
+      zoom: 16,
+      attributionControl: true,
+      style: {
+        version: 8,
+        sources: {
+          osm: {
+            type: 'raster',
+            tiles: [
+              'https://tile.openstreetmap.org/{z}/{x}/{y}.png'
+            ],
+            tileSize: 256,
+            attribution: '© OpenStreetMap contributors',
+            maxzoom: 19
+          }
+        },
+        layers: [
+          {
+            id: 'osm',
+            type: 'raster',
+            source: 'osm'
+          }
+        ]
+      }
+    });
+
+    map.addControl(new maplibregl.NavigationControl(), 'top-right');
+    map.addControl(new maplibregl.FullscreenControl(), 'top-right');
+
+    map.on('load', () => {
+      map.addSource('towal-rgb', {
+        type: 'raster',
+        tiles: [
+          'https://maps.southernskiesagritech.com.au/towal-creek/2026-08-29/rgb/{z}/{x}/{y}.png'
+        ],
+        tileSize: 256,
+        minzoom: 14,
+        maxzoom: 20,
+        scheme: 'tms'
+      });
+
+      map.addLayer({
+        id: 'towal-rgb-layer',
+        type: 'raster',
+        source: 'towal-rgb',
+        paint: {
+          'raster-opacity': 1
+        }
+      });
+
+      map.fitBounds(SURVEY_BOUNDS, {
+        padding: 60,
+        maxZoom: 19
+      });
+
+      document.getElementById('status').textContent =
+        'RGB orthomosaic enabled. Use the slider to compare it with the basemap.';
+    });
+
+    map.on('error', (e) => {
+      console.error('MapLibre error:', e && e.error ? e.error : e);
+      const status = document.getElementById('status');
+      status.textContent =
+        'A map resource failed to load. Open browser DevTools → Console for details (often CORS or a tile URL issue).';
+    });
+
+    const opacity = document.getElementById('opacity');
+    const opacityValue = document.getElementById('opacityValue');
+    opacity.addEventListener('input', () => {
+      const value = Number(opacity.value) / 100;
+      opacityValue.value = opacity.value + '%';
+      if (map.getLayer('towal-rgb-layer')) {
+        map.setPaintProperty('towal-rgb-layer', 'raster-opacity', value);
+      }
+    });
+
+    document.getElementById('orthoToggle').addEventListener('change', (e) => {
+      if (map.getLayer('towal-rgb-layer')) {
+        map.setLayoutProperty(
+          'towal-rgb-layer',
+          'visibility',
+          e.target.checked ? 'visible' : 'none'
+        );
+      }
+    });
+
+    document.getElementById('fitBtn').addEventListener('click', () => {
+      map.fitBounds(SURVEY_BOUNDS, {
+        padding: 60,
+        maxZoom: 19
+      });
+    });
+  </script>
+</body>
+</html>
