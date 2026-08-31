@@ -2,22 +2,68 @@
 <html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Southern Skies Map</title>
 <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5.7.3/dist/maplibre-gl.css">
-<link rel="stylesheet" href="/maps/ui/ssa-ui.css?v=7.0.3">
+<link rel="stylesheet" href="/maps/ui/ssa-ui.css?v=7.0.4">
 <style>html,body,#map{margin:0;width:100%;height:100%}</style></head>
-<body><div id="map"></div>
+<body><div id="map"></div><div id="terraStrip" class="ssa-terra-strip"></div>
 <script src="/maps/config.js"></script>
 <script src="https://unpkg.com/maplibre-gl@5.7.3/dist/maplibre-gl.js"></script>
-<script src="/maps/ui/ssa-ui.js?v=7.0.3"></script>
+<script src="/maps/ui/ssa-ui.js?v=7.0.4"></script>
 <script>
 (async()=>{
  const q=new URLSearchParams(location.search),client=q.get('client'),pid=q.get('paddock'),date=q.get('date');
- const data=await fetch(`/portal/${client}/property.json?b=7.0.3`).then(r=>r.json()),p=data.paddocks.find(x=>x.id===pid),s=p.surveys.find(x=>x.date===date);
+ const data=await fetch(`/portal/${client}/property.json?b=7.0.4`).then(r=>r.json()),p=data.paddocks.find(x=>x.id===pid),s=p.surveys.find(x=>x.date===date);
  const key=window.SSA_CONFIG?.ESRI_API_KEY||'';let style={version:8,sources:{},layers:[]},esri=[];
  try{const r=await fetch(`https://basemapstyles-api.arcgis.com/arcgis/rest/services/styles/v2/styles/arcgis/imagery/standard?token=${encodeURIComponent(key)}`);if(r.ok)style=await r.json()}catch(e){}
  style.sources=style.sources||{};style.layers=style.layers||[];esri=style.layers.map(x=>x.id);style.sources.ssa_osm={type:'raster',tiles:['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],tileSize:256};style.layers.unshift({id:'ssa-osm',type:'raster',source:'ssa_osm',layout:{visibility:'none'}});
  const map=new maplibregl.Map({container:'map',style,center:s.center,zoom:16});map.addControl(new maplibregl.NavigationControl(),'top-right');let current=Object.keys(s.layers)[0],ui;
- function show(k){if(map.getLayer('survey'))map.removeLayer('survey');if(map.getSource('survey'))map.removeSource('survey');const L=s.layers[k];map.addSource('survey',{type:'raster',tiles:[L.tiles],tileSize:256,minzoom:L.minzoom||14,maxzoom:L.maxzoom||20,scheme:L.scheme||'tms',bounds:[s.bounds[0][0],s.bounds[0][1],s.bounds[1][0],s.bounds[1][1]]});map.addLayer({id:'survey',type:'raster',source:'survey'});current=k;setTimeout(()=>ui&&ui.maps.forEach(m=>ui.raise(m)),20)}
- function base(sat){if(map.getLayer('ssa-osm'))map.setLayoutProperty('ssa-osm','visibility',sat?'none':'visible');esri.forEach(id=>{if(map.getLayer(id))map.setLayoutProperty(id,'visibility',sat?'visible':'none')})}
- map.on('load',()=>{show(current);map.fitBounds(s.bounds,{padding:50,maxZoom:19});ui=new SSAUI({map,layers:Object.entries(s.layers).map(([id,L])=>({id,label:L.label})),currentLayer:()=>current,setLayer:show,setBase:base,fit:()=>map.fitBounds(s.bounds,{padding:50,maxZoom:19}),back:()=>location.href=`/portal/${client}/${pid}/`,fileNameBase:`${data.name}-${p.name}-${s.date}`.replace(/\s+/g,'-'),swipe:()=>{let right='__satellite__';if(p.surveys.length>1){const alt=p.surveys.find(x=>x.date!==s.date);if(alt)right=alt.date}location.href=`/maps/compare/?client=${encodeURIComponent(client)}&paddock=${encodeURIComponent(pid)}&left=${encodeURIComponent(s.date)}&right=${encodeURIComponent(right)}&layer=${encodeURIComponent(current)}`}})});
+ function show(k){
+    if(map.getLayer('survey'))map.removeLayer('survey');
+    if(map.getSource('survey'))map.removeSource('survey');
+    const L=s.layers[k];
+    map.addSource('survey',{type:'raster',tiles:[L.tiles],tileSize:256,minzoom:L.minzoom||14,maxzoom:L.maxzoom||20,scheme:L.scheme||'tms',bounds:[s.bounds[0][0],s.bounds[0][1],s.bounds[1][0],s.bounds[1][1]]});
+    map.addLayer({id:'survey',type:'raster',source:'survey'});
+    current=k;
+    baseMode='imagery';
+    updateTerraButtons();
+    setTimeout(()=>ui&&ui.maps.forEach(m=>ui.raise(m)),20);
+  }
+  let baseMode='imagery';
+  function setBaseMode(mode){
+    if(map.getLayer('ssa-osm'))map.setLayoutProperty('ssa-osm','visibility',mode==='map'?'visible':'none');
+    esri.forEach(id=>{if(map.getLayer(id))map.setLayoutProperty(id,'visibility',mode==='satellite'?'visible':'none')});
+    if(map.getLayer('survey'))map.setLayoutProperty('survey','visibility',mode==='imagery'?'visible':'none');
+    baseMode=mode;
+    updateTerraButtons();
+  }
+  function base(sat){setBaseMode(sat?'satellite':'map')}
+  function buildTerraStrip(){
+    const strip=document.getElementById('terraStrip');
+    strip.innerHTML='';
+    const choices=[
+      {id:'map',label:'Map',base:true},
+      {id:'satellite',label:'Satellite',base:true},
+      ...Object.entries(s.layers).map(([id,L])=>({id,label:L.label,base:false}))
+    ];
+    choices.forEach(c=>{
+      const b=document.createElement('button');
+      b.textContent=c.label;b.dataset.choice=c.id;
+      if(c.base)b.classList.add('base');
+      b.onclick=()=>{
+        if(c.id==='map'||c.id==='satellite')setBaseMode(c.id);
+        else show(c.id);
+      };
+      strip.appendChild(b);
+    });
+    updateTerraButtons();
+  }
+  function updateTerraButtons(){
+    const strip=document.getElementById('terraStrip');if(!strip)return;
+    strip.querySelectorAll('button').forEach(b=>{
+      const id=b.dataset.choice;
+      const active=(id==='map'&&baseMode==='map')||(id==='satellite'&&baseMode==='satellite')||(!['map','satellite'].includes(id)&&baseMode==='imagery'&&id===current);
+      b.classList.toggle('active',active);
+    });
+  }
+ map.on('load',()=>{show(current);buildTerraStrip();map.fitBounds(s.bounds,{padding:50,maxZoom:19});ui=new SSAUI({map,layers:Object.entries(s.layers).map(([id,L])=>({id,label:L.label})),currentLayer:()=>current,setLayer:show,setBase:base,fit:()=>map.fitBounds(s.bounds,{padding:50,maxZoom:19}),back:()=>location.href=`/portal/${client}/${pid}/`,fileNameBase:`${data.name}-${p.name}-${s.date}`.replace(/\s+/g,'-'),swipe:()=>{let right='__satellite__';if(p.surveys.length>1){const alt=p.surveys.find(x=>x.date!==s.date);if(alt)right=alt.date}location.href=`/maps/compare/?client=${encodeURIComponent(client)}&paddock=${encodeURIComponent(pid)}&left=${encodeURIComponent(s.date)}&right=${encodeURIComponent(right)}&layer=${encodeURIComponent(current)}`}})});
 })();
 </script></body></html>

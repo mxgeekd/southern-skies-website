@@ -1,7 +1,7 @@
 
 (function(global){
 'use strict';
-const VERSION='7.0.3';
+const VERSION='7.0.4';
 global.SSA_MAP_BUILD=VERSION;
 
 function load(src){return new Promise((ok,bad)=>{if(document.querySelector(`script[data-ssa="${src}"]`))return ok();const s=document.createElement('script');s.src=src;s.dataset.ssa=src;s.onload=ok;s.onerror=bad;document.head.appendChild(s)})}
@@ -44,8 +44,7 @@ class SSAUI{
   const rail=document.createElement('div');rail.className='ssa-rail';rail.innerHTML='<button data-r="layers"><span class="ico">▱</span>Layers</button><button data-r="tools"><span class="ico">⌁</span>Use<br>Tools</button>';this.container.appendChild(rail);this.rail=rail;
   const panel=document.createElement('div');panel.className='ssa-panel hidden';panel.innerHTML='<div class="ssa-head"><span id="ssaTitle"></span><button class="ssa-close">×</button></div><div id="ssaBody"></div>';this.container.appendChild(panel);this.panel=panel;panel.querySelector('.ssa-close').onclick=()=>this.close();
   rail.querySelector('[data-r=layers]').onclick=()=>this.openLayers();rail.querySelector('[data-r=tools]').onclick=()=>this.openTools();
-  if(this.layers.length){const q=document.createElement('div');q.className='ssa-quick';q.innerHTML='<b>Imagery</b><select></select>';this.container.appendChild(q);this.quick=q;q.querySelector('select').onchange=e=>{this.setLayer(e.target.value);setTimeout(()=>{this.maps.forEach(m=>this.raise(m));this.legendFor(e.target.value,true)},50)}}
-  this.legend=document.createElement('div');this.legend.className='ssa-legend hidden';this.container.appendChild(this.legend);
+    this.legend=document.createElement('div');this.legend.className='ssa-legend hidden';this.container.appendChild(this.legend);
   this.info=document.createElement('div');this.info.className='ssa-info hidden';this.container.appendChild(this.info);
  }
  active(name){this.rail.querySelectorAll('button').forEach(b=>b.classList.toggle('active',b.dataset.r===name))}
