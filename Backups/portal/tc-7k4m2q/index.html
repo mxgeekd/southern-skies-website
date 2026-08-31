@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Towal Creek — Southern Skies Agritech</title>
+<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5.7.3/dist/maplibre-gl.css">
+<style>
+:root{
+  --green:#1f6f43;--green2:#155432;--ink:#19231c;--muted:#657268;
+  --line:#dce4de;--soft:#f5f8f6;--card:#fff;
+}
+*{box-sizing:border-box}
+html,body{margin:0;font-family:Arial,Helvetica,sans-serif;color:var(--ink);background:#f2f5f3}
+a{color:inherit}
+.topbar{background:#fff;border-bottom:1px solid var(--line)}
+.wrap{max-width:1120px;margin:auto;padding:0 20px}
+.brand{padding:18px 0}
+.eyebrow{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--green);font-weight:800}
+.brand h1{margin:4px 0 0;font-size:25px}
+.brand p{margin:5px 0 0;color:var(--muted)}
+main{padding:24px 0 48px}
+.hero-grid{display:grid;grid-template-columns:1.45fr .8fr;gap:18px;align-items:stretch}
+.card{background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:0 5px 20px rgba(0,0,0,.05)}
+.card-pad{padding:18px}
+#propertyMap{height:460px;border-radius:14px;overflow:hidden}
+.section-title{font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:#425048;font-weight:800;margin:0 0 12px}
+.paddock-list{display:grid;gap:12px}
+.paddock-card{display:block;text-decoration:none;padding:16px;border:1px solid var(--line);border-radius:12px;background:#fff;transition:.15s}
+.paddock-card:hover{border-color:#a9bcb0;transform:translateY(-1px)}
+.paddock-card h3{margin:0 0 5px;font-size:18px}
+.paddock-card p{margin:0;color:var(--muted);font-size:13px;line-height:1.45}
+.meta-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:11px;font-size:12px;color:#435047}
+.badge{background:#edf5f0;border-radius:999px;padding:5px 8px}
+.btn{display:inline-block;text-decoration:none;border:0;background:var(--green);color:#fff;padding:10px 13px;border-radius:9px;font-weight:800;cursor:pointer}
+.btn.secondary{background:#edf4ef;color:#25402e;border:1px solid #cfdbd3}
+.timeline{position:relative;margin-top:4px}
+.timeline:before{content:"";position:absolute;left:12px;top:6px;bottom:6px;width:2px;background:#dce6df}
+.event{position:relative;padding-left:38px;margin-bottom:18px}
+.event:before{content:"";position:absolute;left:5px;top:7px;width:16px;height:16px;border-radius:50%;background:var(--green);border:3px solid #fff;box-shadow:0 0 0 1px #b8cabd}
+.event-card{padding:16px;border:1px solid var(--line);border-radius:12px;background:#fff}
+.event-date{font-size:12px;font-weight:800;color:var(--green);text-transform:uppercase;letter-spacing:.04em}
+.event-card h3{margin:5px 0 6px}
+.event-card p{margin:0;color:var(--muted);font-size:13px}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.breadcrumbs{font-size:13px;color:var(--muted);margin-bottom:14px}
+.breadcrumbs a{text-decoration:none;color:var(--green)}
+@media(max-width:760px){
+  .wrap{padding:0 14px}.brand{padding:14px 0}.brand h1{font-size:22px}
+  main{padding-top:14px}.hero-grid{grid-template-columns:1fr}
+  #propertyMap{height:360px}.card-pad{padding:14px}
+}
+</style>
+</head>
+<body>
+<header class="topbar"><div class="wrap brand">
+<div class="eyebrow">Southern Skies Agritech</div>
+<h1>Towal Creek</h1><p>Property imagery and survey history</p>
+</div></header>
+
+<main><div class="wrap">
+<div class="breadcrumbs"><a href="/">Southern Skies Agritech</a> / Towal Creek</div>
+<div class="hero-grid">
+  <div class="card"><div id="propertyMap"></div></div>
+  <div class="card card-pad">
+    <div class="section-title">Paddocks</div>
+    <div id="paddockList" class="paddock-list"></div>
+  </div>
+</div>
+</div></main>
+
+<script src="https://unpkg.com/maplibre-gl@5.7.3/dist/maplibre-gl.js"></script>
+<script>
+(async function(){
+  const data = await fetch('./property.json').then(r=>r.json());
+  const list=document.getElementById('paddockList');
+
+  data.paddocks.forEach(p=>{
+    const latest=p.surveys[p.surveys.length-1];
+    const a=document.createElement('a');
+    a.className='paddock-card'; a.href=p.page;
+    a.innerHTML=`<h3>${p.name}</h3><p>${p.description||''}</p>
+      <div class="meta-row"><span class="badge">${p.surveys.length} survey${p.surveys.length===1?'':'s'}</span>
+      <span class="badge">Latest: ${latest.dateLabel}</span></div>`;
+    list.appendChild(a);
+  });
+
+  const map=new maplibregl.Map({
+    container:'propertyMap',
+    style:{version:8,sources:{osm:{type:'raster',tiles:['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],tileSize:256,attribution:'© OpenStreetMap contributors'}},
+    layers:[{id:'osm',type:'raster',source:'osm'}]},
+    center:[152.371,-30.8115],zoom:15.3
+  });
+  map.addControl(new maplibregl.NavigationControl(),'top-right');
+
+  map.on('load',()=>{
+    const features=data.paddocks.map(p=>{
+      const s=p.surveys[p.surveys.length-1], b=s.bounds;
+      return {type:'Feature',properties:{id:p.id,name:p.name,page:p.page},
+        geometry:{type:'Polygon',coordinates:[[
+          [b[0][0],b[0][1]],[b[1][0],b[0][1]],[b[1][0],b[1][1]],[b[0][0],b[1][1]],[b[0][0],b[0][1]]
+        ]]}};
+    });
+    map.addSource('coverage',{type:'geojson',data:{type:'FeatureCollection',features}});
+    map.addLayer({id:'coverage-fill',type:'fill',source:'coverage',paint:{'fill-color':'#1f6f43','fill-opacity':0.18}});
+    map.addLayer({id:'coverage-line',type:'line',source:'coverage',paint:{'line-color':'#1f6f43','line-width':2}});
+    map.on('click','coverage-fill',e=>{ if(e.features && e.features[0]) location.href=e.features[0].properties.page; });
+    map.on('mouseenter','coverage-fill',()=>map.getCanvas().style.cursor='pointer');
+    map.on('mouseleave','coverage-fill',()=>map.getCanvas().style.cursor='');
+  });
+})();
+</script>
+</body></html>

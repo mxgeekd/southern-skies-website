@@ -1,0 +1,192 @@
+{
+  "id": "tc-7k4m2q",
+  "name": "Towal Creek",
+  "subtitle": "Property imagery and survey history",
+  "paddocks": [
+    {
+      "id": "paddock-1-2",
+      "name": "Paddock 1 + 2",
+      "description": "Repeat multispectral survey area",
+      "page": "/portal/tc-7k4m2q/paddock-1-2/",
+      "surveys": [
+        {
+          "date": "2026-07-03",
+          "dateLabel": "3 Jul 2026",
+          "type": "Multispectral Survey",
+          "bounds": [
+            [
+              152.3703526,
+              -30.8109066
+            ],
+            [
+              152.3764438,
+              -30.8082543
+            ]
+          ],
+          "center": [
+            152.3733982,
+            -30.8095804
+          ],
+          "layers": {
+            "rgb": {
+              "label": "RGB",
+              "tiles": "https://maps.southernskiesagritech.com.au/towal-creek/paddock-1-2/2026-07-03/rgb/{z}/{x}/{y}.png",
+              "scheme": "tms",
+              "minzoom": 14,
+              "maxzoom": 20
+            },
+            "ndvi": {
+              "label": "NDVI",
+              "tiles": "https://maps.southernskiesagritech.com.au/towal-creek/paddock-1-2/2026-07-03/ndvi/{z}/{x}/{y}.png",
+              "scheme": "tms",
+              "minzoom": 14,
+              "maxzoom": 20
+            },
+            "gndvi": {
+              "label": "GNDVI",
+              "tiles": "https://maps.southernskiesagritech.com.au/towal-creek/paddock-1-2/2026-07-03/gndvi/{z}/{x}/{y}.png",
+              "scheme": "tms",
+              "minzoom": 14,
+              "maxzoom": 20
+            }
+          }
+        },
+        {
+          "date": "2026-08-20",
+          "dateLabel": "20 Aug 2026",
+          "type": "Multispectral Survey",
+          "bounds": [
+            [
+              152.3703172,
+              -30.8108527
+            ],
+            [
+              152.3764338,
+              -30.8082709
+            ]
+          ],
+          "center": [
+            152.3733755,
+            -30.8095618
+          ],
+          "layers": {
+            "rgb": {
+              "label": "RGB",
+              "tiles": "https://maps.southernskiesagritech.com.au/towal-creek/paddock-1-2/2026-08-20/rgb/{z}/{x}/{y}.png",
+              "scheme": "tms",
+              "minzoom": 14,
+              "maxzoom": 20
+            },
+            "ndvi": {
+              "label": "NDVI",
+              "tiles": "https://maps.southernskiesagritech.com.au/towal-creek/paddock-1-2/2026-08-20/ndvi/{z}/{x}/{y}.png",
+              "scheme": "tms",
+              "minzoom": 14,
+              "maxzoom": 20
+            },
+            "gndvi": {
+              "label": "GNDVI",
+              "tiles": "https://maps.southernskiesagritech.com.au/towal-creek/paddock-1-2/2026-08-20/gndvi/{z}/{x}/{y}.png",
+              "scheme": "tms",
+              "minzoom": 14,
+              "maxzoom": 20
+            }
+          }
+        },
+        {
+          "date": "2026-08-29",
+          "dateLabel": "29 Aug 2026",
+          "type": "Multispectral Survey",
+          "bounds": [
+            [
+              152.3701247,
+              -30.811096
+            ],
+            [
+              152.3766099,
+              -30.8080951
+            ]
+          ],
+          "center": [
+            152.3733673,
+            -30.8095955
+          ],
+          "layers": {
+            "rgb": {
+              "label": "RGB",
+              "tiles": "https://maps.southernskiesagritech.com.au/towal-creek/2026-08-29/paddock-1-2/rgb/{z}/{x}/{y}.png",
+              "scheme": "tms",
+              "minzoom": 14,
+              "maxzoom": 20
+            },
+            "ndvi": {
+              "label": "NDVI",
+              "tiles": "https://maps.southernskiesagritech.com.au/towal-creek/2026-08-29/paddock-1-2/ndvi/{z}/{x}/{y}.png",
+              "scheme": "tms",
+              "minzoom": 14,
+              "maxzoom": 20
+            },
+            "gndvi": {
+              "label": "GNDVI",
+              "tiles": "https://maps.southernskiesagritech.com.au/towal-creek/2026-08-29/paddock-1-2/gndvi/{z}/{x}/{y}.png",
+              "scheme": "tms",
+              "minzoom": 14,
+              "maxzoom": 20
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "demo-paddock",
+      "name": "Demo Paddock",
+      "description": "Single survey dataset",
+      "page": "/portal/tc-7k4m2q/demo-paddock/",
+      "surveys": [
+        {
+          "date": "2026-08-29",
+          "dateLabel": "29 Aug 2026",
+          "type": "Multispectral Survey",
+          "bounds": [
+            [
+              152.3650913,
+              -30.8151665
+            ],
+            [
+              152.3728435,
+              -30.809578
+            ]
+          ],
+          "center": [
+            152.3689674,
+            -30.8123723
+          ],
+          "layers": {
+            "rgb": {
+              "label": "RGB",
+              "tiles": "https://maps.southernskiesagritech.com.au/towal-creek/2026-08-29/rgb/{z}/{x}/{y}.png",
+              "scheme": "tms",
+              "minzoom": 14,
+              "maxzoom": 20
+            },
+            "ndvi": {
+              "label": "NDVI",
+              "tiles": "https://maps.southernskiesagritech.com.au/towal-creek/2026-08-29/ndvi/{z}/{x}/{y}.png",
+              "scheme": "tms",
+              "minzoom": 14,
+              "maxzoom": 20
+            },
+            "gndvi": {
+              "label": "GNDVI",
+              "tiles": "https://maps.southernskiesagritech.com.au/towal-creek/2026-08-29/gndvi/{z}/{x}/{y}.png",
+              "scheme": "tms",
+              "minzoom": 14,
+              "maxzoom": 20
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "storagePrefix": "towal-creek"
+}
