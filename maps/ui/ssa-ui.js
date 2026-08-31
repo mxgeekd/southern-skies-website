@@ -1,7 +1,7 @@
 
 (function(global){
 'use strict';
-const VERSION='7.0.2';
+const VERSION='7.0.3';
 global.SSA_MAP_BUILD=VERSION;
 
 function load(src){return new Promise((ok,bad)=>{if(document.querySelector(`script[data-ssa="${src}"]`))return ok();const s=document.createElement('script');s.src=src;s.dataset.ssa=src;s.onload=ok;s.onerror=bad;document.head.appendChild(s)})}
@@ -60,35 +60,101 @@ class SSAUI{
  openTools(){
   this.active('tools');
   this.panelSet('Measure',`<div class="ssa-pane active">
-    ${this.grid([['length','↔','Length'],['area','▱','Area'],['radius','◉','Radius']])}
-    ${this.actions()}
-    <div class="ssa-readout">Choose a measurement tool.</div>
+    ${this.grid([['pathpoly','⌁','Path / Polygon'],['radius','◉','Radius']])}
+    <div class="ssa-actions">
+      <button data-act="finishpath">Finish path</button>
+      <button data-act="closepoly">Close polygon</button>
+      <button class="green" data-act="shade">Shading: ${this.shaded?'On':'Off'}</button>
+      <button data-act="undo">Undo</button>
+      <button class="danger" data-act="clear">Clear</button>
+    </div>
+    <div class="ssa-readout">Choose Path / Polygon, then click points on the map.</div>
   </div>`);
   this.panel.querySelectorAll('[data-tool]').forEach(b=>b.onclick=()=>{
     this.mode=b.dataset.tool;this.coords=[];
     this.panel.querySelectorAll('[data-tool]').forEach(x=>x.classList.toggle('active',x===b));
     this.sync();
+    const r=this.readout();
+    if(r)r.textContent=this.mode==='radius'?'Click the centre, then click the edge.':'Click points to draw a path. Use Close polygon when you want an area.';
   });
-  this.panel.querySelectorAll('[data-act=finish]').forEach(b=>b.onclick=()=>this.finish());
-  this.panel.querySelectorAll('[data-act=undo]').forEach(b=>b.onclick=()=>this.undo());
-  this.panel.querySelectorAll('[data-act=clear]').forEach(b=>b.onclick=()=>this.clear());
-  this.panel.querySelectorAll('[data-act=shade]').forEach(b=>b.onclick=()=>{
+  this.panel.querySelector('[data-act=finishpath]').onclick=()=>this.finishPath();
+  this.panel.querySelector('[data-act=closepoly]').onclick=()=>this.closePolygon();
+  this.panel.querySelector('[data-act=undo]').onclick=()=>this.undo();
+  this.panel.querySelector('[data-act=clear]').onclick=()=>this.clear();
+  this.panel.querySelector('[data-act=shade]').onclick=()=>{
     this.shaded=!this.shaded;
     this.maps.forEach(m=>{if(m.getLayer('ssa-v7-fill'))m.setPaintProperty('ssa-v7-fill','fill-opacity',this.shaded?.22:0)});
-    this.panel.querySelectorAll('[data-act=shade]').forEach(x=>x.textContent='Shading: '+(this.shaded?'On':'Off'));
-  });
+    this.panel.querySelector('[data-act=shade]').textContent='Shading: '+(this.shaded?'On':'Off');
+  };
  }
  readout(){return this.panel.querySelector('.ssa-pane.active .ssa-readout')}
- click(e){if(this.identifyOnce){this.identifyOnce=false;const r=this.panel.querySelector('.ssa-readout');if(r)r.innerHTML=`<b>${e.lngLat.lng.toFixed(6)}, ${e.lngLat.lat.toFixed(6)}</b>`;return}if(!this.mode)return;const c=[e.lngLat.lng,e.lngLat.lat];if(this.mode==='label'){const t=prompt('Label text:','');if(t)this.features.push(turf.point(c,{name:t}));this.mode=null;this.sync();return}if(this.mode==='pin'){this.features.push(turf.point(c,{name:'Pin'}));this.mode=null;this.sync();return}this.coords.push(c);if(this.mode==='rectangle'&&this.coords.length===2){this.finish();return}if((this.mode==='radius'||this.mode==='circle')&&this.coords.length===2){this.finish();return}this.sync();this.update(this.coords)}
+ click(e){
+  if(this.identifyOnce){
+    this.identifyOnce=false;
+    const r=this.panel.querySelector('.ssa-readout');
+    if(r)r.innerHTML=`<b>${e.lngLat.lng.toFixed(6)}, ${e.lngLat.lat.toFixed(6)}</b>`;
+    return;
+  }
+  if(!this.mode)return;
+  const c=[e.lngLat.lng,e.lngLat.lat];
+  this.coords.push(c);
+  if(this.mode==='radius' && this.coords.length===2){this.finishRadius();return;}
+  this.sync();this.update(this.coords);
+ }
  move(e){if(!this.mode||!this.coords.length)return;this.update([...this.coords,[e.lngLat.lng,e.lngLat.lat]])}
  undo(){if(this.coords.length){this.coords.pop();this.sync();this.update(this.coords)}}
- finish(){let f=null;if((this.mode==='length'||this.mode==='line')&&this.coords.length>=2)f=turf.lineString(this.coords);if((this.mode==='area'||this.mode==='polygon')&&this.coords.length>=3)f=turf.polygon([[...this.coords,this.coords[0]]]);if(this.mode==='rectangle'&&this.coords.length===2){const a=this.coords[0],b=this.coords[1];f=turf.polygon([[[a[0],a[1]],[b[0],a[1]],[b[0],b[1]],[a[0],b[1]],[a[0],a[1]]]])}if((this.mode==='radius'||this.mode==='circle')&&this.coords.length===2){const km=turf.distance(turf.point(this.coords[0]),turf.point(this.coords[1]),{units:'kilometers'});f=turf.circle(this.coords[0],km,{steps:64,units:'kilometers'})}if(!f)return;this.features.push(f);this.coords=[];this.mode=null;this.sync();const r=this.readout();if(r)r.innerHTML=this.describe(f)}
- fc(){const fs=[...this.features];if(this.coords.length>=2&&['length','line','area','polygon'].includes(this.mode))fs.push(turf.lineString(this.coords,{preview:true}));this.coords.forEach(c=>fs.push(turf.point(c,{preview:true})));return turf.featureCollection(fs)}
+ finishPath(){
+  if(this.mode!=='pathpoly' || this.coords.length<2)return;
+  const f=turf.lineString(this.coords,{kind:'path'});
+  this.features.push(f);
+  this.coords=[];this.mode=null;this.sync();
+  const r=this.readout();if(r)r.innerHTML=this.pathReadout(f.geometry.coordinates);
+ }
+ closePolygon(){
+  if(this.mode!=='pathpoly' || this.coords.length<3)return;
+  const ring=[...this.coords,this.coords[0]];
+  const f=turf.polygon([ring],{kind:'polygon'});
+  this.features.push(f);
+  this.coords=[];this.mode=null;this.sync();
+  const r=this.readout();if(r)r.innerHTML=this.area(ring.slice(0,-1));
+ }
+ finishRadius(){
+  if(this.mode!=='radius' || this.coords.length!==2)return;
+  const km=turf.distance(turf.point(this.coords[0]),turf.point(this.coords[1]),{units:'kilometers'});
+  const f=turf.circle(this.coords[0],km,{steps:64,units:'kilometers',properties:{kind:'radius',radiusKm:km}});
+  this.features.push(f);
+  this.coords=[];this.mode=null;this.sync();
+  const r=this.readout();if(r)r.innerHTML=`<b>Radius ${km<1?(km*1000).toFixed(1)+' m':km.toFixed(3)+' km'}</b><br>Area ${(Math.PI*km*km*100).toFixed(3)} ha`;
+ }
+ finish(){if(this.mode==='pathpoly')this.finishPath();else if(this.mode==='radius')this.finishRadius();}
+ fc(){
+  const fs=[...this.features];
+  if(this.coords.length>=2 && this.mode==='pathpoly')fs.push(turf.lineString(this.coords,{preview:true}));
+  this.coords.forEach(c=>fs.push(turf.point(c,{preview:true})));
+  return turf.featureCollection(fs);
+ }
  sync(){const d=this.fc();this.maps.forEach(m=>{const s=m.getSource(this.source);if(s)s.setData(d);this.raise(m)})}
- update(c){const r=this.readout();if(!r)return;if(['length','line'].includes(this.mode)&&c.length>=2)r.innerHTML=this.distance(c);if(['area','polygon'].includes(this.mode)&&c.length>=3)r.innerHTML=this.area(c);if(['radius','circle'].includes(this.mode)&&c.length>=2){const km=turf.distance(turf.point(c[0]),turf.point(c[1]),{units:'kilometers'});r.innerHTML=`<b>Radius ${km<1?(km*1000).toFixed(1)+' m':km.toFixed(3)+' km'}</b><br>Area ${(Math.PI*km*km*100).toFixed(3)} ha`}}
+ update(c){
+  const r=this.readout();if(!r)return;
+  if(this.mode==='pathpoly' && c.length>=2)r.innerHTML=this.pathReadout(c);
+  if(this.mode==='radius' && c.length>=2){
+    const km=turf.distance(turf.point(c[0]),turf.point(c[1]),{units:'kilometers'});
+    r.innerHTML=`<b>Radius ${km<1?(km*1000).toFixed(1)+' m':km.toFixed(3)+' km'}</b><br>Area ${(Math.PI*km*km*100).toFixed(3)} ha`;
+  }
+ }
+ pathReadout(c){
+  const km=turf.length(turf.lineString(c),{units:'kilometers'});
+  let heading='';
+  if(c.length>=2){
+    const b=turf.bearing(turf.point(c[c.length-2]),turf.point(c[c.length-1]));
+    const h=(b+360)%360;
+    heading=`<br>Heading ${h.toFixed(0)} deg`;
+  }
+  return `<b>Length ${km<1?(km*1000).toFixed(1)+' m':km.toFixed(3)+' km'}</b>${heading}<br>${c.length} points`;
+ }
  distance(c){const km=turf.length(turf.lineString(c),{units:'kilometers'});return `<b>${km<1?(km*1000).toFixed(1)+' m':km.toFixed(3)+' km'}</b>`}
  area(c){const p=turf.polygon([[...c,c[0]]]),sqm=turf.area(p),ha=sqm/10000,per=turf.length(turf.polygonToLine(p),{units:'kilometers'});return `<b>${ha.toFixed(3)} ha</b><br>${sqm.toFixed(0)} m² · perimeter ${per<1?(per*1000).toFixed(0)+' m':per.toFixed(2)+' km'}`}
- describe(f){if(f.geometry.type==='Polygon')return this.area(f.geometry.coordinates[0].slice(0,-1));if(f.geometry.type==='LineString')return this.distance(f.geometry.coordinates);return f.geometry.type}
+ describe(f){if(f.geometry.type==='Polygon')return this.area(f.geometry.coordinates[0].slice(0,-1));if(f.geometry.type==='LineString')return this.pathReadout(f.geometry.coordinates);return f.geometry.type}
  clear(){this.features=[];this.coords=[];this.mode=null;this.sync();const r=this.readout();if(r)r.textContent='Cleared.'}
  legendFor(id,flash){if(!id||id==='rgb'){this.legend.classList.add('hidden');return}const x=INFO[id.toLowerCase()]||{title:id.toUpperCase(),sub:'Vegetation index',text:'Relative vegetation index. Interpret higher and lower values in context.',fixed:false};this.legend.classList.remove('hidden');this.legend.innerHTML=`<div class="ssa-legend-head"><span>${x.title}<br><small>${x.sub}</small></span><button>i</button></div><div class="ssa-gradient"></div><div class="ssa-ticks">${x.fixed?'<span>-1</span><span>0</span><span>0.4</span><span>0.7</span><span>1</span>':'<span>Lower</span><span>Higher</span>'}</div>`;this.legend.querySelector('button').onclick=()=>this.popup(x);if(flash)this.popup(x,true)}
  popup(x,auto){this.info.classList.remove('hidden');this.info.innerHTML=`<b>${x.title}</b><br>${x.text}`;if(auto)setTimeout(()=>this.info.classList.add('hidden'),5000)}
