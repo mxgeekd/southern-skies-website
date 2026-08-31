@@ -1,0 +1,14 @@
+{
+  "id": "trc-001",
+  "name": "Lot8/12 Toorumbee Creek",
+  "subtitle": "Property imagery and survey history",
+  "storagePrefix": "trc",
+  "paddocks": [
+    {
+      "id": "lot8",
+      "name": "House Paddock",
+      "description": "",
+      "surveys": []
+    }
+  ]
+}
