@@ -14,7 +14,8 @@ h1{margin:4px 0 3px}.sub{color:var(--muted)}main{padding:22px 0 45px}.crumb{font
 .paddock{display:block;text-decoration:none;color:inherit;border:1px solid var(--line);border-radius:12px;padding:15px;margin-bottom:12px}
 .paddock h3{margin:0 0 5px}.paddock p{margin:0;color:var(--muted);font-size:13px}.badges{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}.badge{font-size:12px;background:#edf5f0;padding:5px 8px;border-radius:999px}
 @media(max-width:760px){.grid{grid-template-columns:1fr}#map{height:360px}.wrap{padding:0 14px}}
-</style><link rel="stylesheet" href="/maps/tools/map-tools.css"><link rel="stylesheet" href="/maps/explorer/explorer.css"></head>
+</style><link rel="stylesheet" href="/maps/tools/map-tools.css"><link rel="stylesheet" href="/maps/explorer/explorer.css"><link rel="stylesheet" href="/maps/ui/ssa-ui.css?v=7.0.0">
+</head>
 <body><div class="top"><div class="wrap"><div class="ey">Southern Skies Agritech</div><h1 id="name">Property</h1><div class="sub" id="subtitle"></div></div></div>
 <main><div class="wrap"><div class="crumb"><a href="/">Southern Skies Agritech</a> / <span id="crumbName"></span></div>
 <div class="grid"><div class="card"><div id="map"></div></div><div class="card pad"><div class="sec">Paddocks</div><div id="list"></div></div></div></div></main>
@@ -53,4 +54,5 @@ window.addEventListener('load', () => {
 });
 </script>
 
-</body></html>
+<script src="/maps/ui/ssa-ui.js?v=7.0.0"></script>
+<script>/* SSA_PROP_BUILD_7.0.0 */window.addEventListener('load',()=>setTimeout(()=>{try{if(window.__ssaPropertyMap&&window.SSAUI)new SSAUI({map:window.__ssaPropertyMap,back:()=>history.length>1?history.back():location.assign('/'),fit:()=>{},fileNameBase:'property-layer'})}catch(e){console.warn(e)}},600));</script></body></html>
