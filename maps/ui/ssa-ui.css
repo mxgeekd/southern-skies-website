@@ -1,63 +1,21 @@
 
-:root{--g:#157a49;--ink:#172219;--line:#d8e1db;--cyan:#00eaff}
+:root{--ssa-green:#157a49;--ssa-ink:#172219;--ssa-line:#d8e1db;--ssa-cyan:#00eaff}
 .ssa-build{position:absolute;z-index:100;top:10px;right:10px;background:#0009;color:#fff;border-radius:7px;padding:5px 8px;font:11px monospace}
-.ssa-back{position:absolute;z-index:99;left:8px;top:8px;width:48px;height:48px;border:1px solid var(--line);border-radius:10px;background:#fff;box-shadow:0 3px 12px #0002;font:700 11px Arial;cursor:pointer;color:var(--ink)}
+.ssa-back{position:absolute;z-index:99;left:8px;top:8px;width:48px;height:48px;border:1px solid var(--ssa-line);border-radius:10px;background:#fff;box-shadow:0 3px 12px #0002;font:700 11px Arial;cursor:pointer;color:var(--ssa-ink)}
 .ssa-back span{display:block;font-size:21px;line-height:17px}
 .ssa-rail{position:absolute;z-index:98;left:8px;top:63px;display:flex;flex-direction:column;gap:7px;font:700 10px Arial}
-.ssa-rail button{width:48px;min-height:48px;border:1px solid var(--line);border-radius:10px;background:#fff;box-shadow:0 3px 12px #0002;cursor:pointer;color:var(--ink);padding:5px}
-.ssa-rail button.active{background:var(--g);color:#fff;border-color:var(--g)}
+.ssa-rail button{width:48px;min-height:48px;border:1px solid var(--ssa-line);border-radius:10px;background:#fff;box-shadow:0 3px 12px #0002;cursor:pointer;color:var(--ssa-ink);padding:5px}
+.ssa-rail button.active{background:var(--ssa-green);color:#fff;border-color:var(--ssa-green)}
 .ssa-rail .ico{display:block;font-size:18px;line-height:18px;margin-bottom:3px}
-.ssa-panel{position:absolute;z-index:97;left:64px;top:8px;width:min(510px,calc(100vw - 82px));background:#fffffff8;border:1px solid var(--line);border-radius:13px;box-shadow:0 7px 26px #0003;font:14px Arial;color:var(--ink);overflow:hidden}
-.ssa-panel.hidden{display:none}.ssa-head{display:flex;justify-content:space-between;align-items:center;padding:14px;border-bottom:1px solid var(--line);font-size:17px;font-weight:800}.ssa-close{border:0;background:none;font-size:21px;cursor:pointer}
-.ssa-tabs{display:grid;grid-template-columns:repeat(3,1fr);border-bottom:1px solid var(--line)}.ssa-tabs button{border:0;background:#fff;padding:12px 8px;font-weight:800;color:#26366f;border-bottom:3px solid transparent;cursor:pointer}.ssa-tabs button.active{color:var(--g);border-bottom-color:var(--g)}
-.ssa-pane{display:none;padding:16px}.ssa-pane.active{display:block}.ssa-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
-.ssa-tool{border:0;background:transparent;cursor:pointer;text-align:center}.ssa-tool .box{width:44px;height:44px;margin:0 auto 6px;border:1px solid #cbd7cf;border-radius:7px;background:#fff;display:grid;place-items:center;font-size:22px;color:#194d92}.ssa-tool.active .box{background:var(--g);color:#fff}.ssa-tool:disabled{opacity:.35;cursor:not-allowed}
-.ssa-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:16px}.ssa-actions button,.ssa-actions label{border:1px solid #cbd7cf;border-radius:8px;background:#f7faf8;padding:8px 10px;font-weight:700;cursor:pointer}.ssa-actions .green{background:var(--g);color:#fff;border-color:var(--g)}.ssa-actions .danger{background:#fff4f4;color:#942a2a;border-color:#e5b7b7}.ssa-actions input[type=file]{display:none}
-.ssa-readout{margin-top:14px;background:#edf5f0;border-radius:8px;padding:11px;line-height:1.45;min-height:42px}.ssa-section{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:#57655c;font-weight:800;margin:0 0 8px}.ssa-select{width:100%;padding:9px;border:1px solid #cbd7cf;border-radius:8px;background:#fff;font:inherit}
-.ssa-quick{position:absolute;z-index:95;left:64px;bottom:10px;display:flex;gap:8px;align-items:center;background:#fffffff4;border:1px solid var(--line);border-radius:10px;padding:7px 9px;box-shadow:0 3px 12px #0002;font:12px Arial}.ssa-quick select{padding:7px;border:1px solid #cbd7cf;border-radius:7px;background:#fff;font-weight:700;max-width:170px}
-.ssa-legend{position:absolute;z-index:95;right:10px;bottom:10px;width:245px;background:#fffffff5;border:1px solid var(--line);border-radius:10px;padding:10px;box-shadow:0 4px 16px #0002;font:12px Arial}.ssa-legend.hidden{display:none}.ssa-legend-head{display:flex;justify-content:space-between;gap:8px;font-weight:800}.ssa-legend button{width:22px;height:22px;border:0;border-radius:50%;background:#eaf3ed;font-weight:800;cursor:pointer}
-.ssa-gradient{height:13px;border-radius:5px;margin-top:8px;background:linear-gradient(90deg,rgb(165,0,38),rgb(215,48,39),rgb(244,109,67),rgb(254,224,139),rgb(217,239,139),rgb(102,189,99),rgb(26,152,80),rgb(0,104,55));border:1px solid #ccd5cf}.ssa-ticks{display:flex;justify-content:space-between;font-size:10px;margin-top:4px}
-.ssa-info{position:absolute;z-index:101;right:10px;bottom:122px;width:285px;background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px;box-shadow:0 5px 20px #0003;font:13px Arial;line-height:1.45}.ssa-info.hidden{display:none}
-@media(max-width:760px){.ssa-build{display:none}.ssa-back{left:6px;top:6px;width:44px;height:44px}.ssa-rail{left:6px;top:56px}.ssa-rail button{width:44px;min-height:44px;font-size:9px}.ssa-panel{left:56px;top:6px;width:calc(100vw - 62px)}.ssa-grid{gap:12px 6px}.ssa-quick{left:56px;right:6px;bottom:6px;overflow:auto}.ssa-quick select{max-width:130px}.ssa-legend{right:6px;bottom:58px;width:220px}}
-
-
-/* v7.0.4 Terra-style imagery selector */
-.ssa-terra-strip{
-  position:absolute;z-index:96;left:50%;bottom:0;transform:translateX(-50%);
-  display:flex;gap:0;align-items:stretch;background:rgba(28,28,28,.94);
-  border-radius:7px 7px 0 0;overflow:hidden;box-shadow:0 -2px 12px #0003;
-  font:700 12px Arial,sans-serif;
-}
-.ssa-terra-strip button{
-  border:0;border-right:1px solid rgba(255,255,255,.16);background:#2b2b2b;color:#fff;
-  padding:11px 14px;cursor:pointer;min-width:54px;
-}
-.ssa-terra-strip button:last-child{border-right:0}
-.ssa-terra-strip button:hover{background:#3a3a3a}
-.ssa-terra-strip button.active{background:#1682ee;color:#fff}
-.ssa-terra-strip button.base{background:#1f5f43}
-.ssa-terra-strip button.base.active{background:#157a49}
-.ssa-compare-strips{
-  position:absolute;z-index:96;left:50%;bottom:0;transform:translateX(-50%);
-  display:flex;gap:10px;align-items:flex-end;
-}
-.ssa-compare-group{
-  background:rgba(28,28,28,.94);border-radius:7px 7px 0 0;overflow:hidden;
-  box-shadow:0 -2px 12px #0003;color:#fff;font:700 11px Arial,sans-serif;
-}
-.ssa-compare-label{padding:5px 9px;background:#111;color:#ddd;text-align:center}
-.ssa-compare-buttons{display:flex}
-.ssa-compare-buttons button{
-  border:0;border-right:1px solid rgba(255,255,255,.16);background:#2b2b2b;color:#fff;
-  padding:9px 11px;cursor:pointer;
-}
-.ssa-compare-buttons button:last-child{border-right:0}
-.ssa-compare-buttons button.active{background:#1682ee}
-.ssa-compare-buttons button.base{background:#1f5f43}
-.ssa-compare-buttons button.base.active{background:#157a49}
-@media(max-width:760px){
-  .ssa-terra-strip{max-width:calc(100vw - 12px);overflow-x:auto;left:6px;right:6px;transform:none}
-  .ssa-terra-strip button{padding:10px 12px;min-width:auto;white-space:nowrap}
-  .ssa-compare-strips{left:6px;right:6px;transform:none;overflow-x:auto;justify-content:flex-start}
-  .ssa-compare-group{flex:0 0 auto}
-}
+.ssa-panel{position:absolute;z-index:97;left:64px;top:8px;width:min(510px,calc(100vw - 82px));background:#fffffff8;border:1px solid var(--ssa-line);border-radius:13px;box-shadow:0 7px 26px #0003;font:14px Arial;color:var(--ssa-ink);overflow:hidden}
+.ssa-panel.hidden{display:none}.ssa-head{display:flex;justify-content:space-between;align-items:center;padding:14px;border-bottom:1px solid var(--ssa-line);font-size:17px;font-weight:800}.ssa-close{border:0;background:none;font-size:21px;cursor:pointer}
+.ssa-pane{padding:16px}.ssa-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:18px}.ssa-tool{border:0;background:transparent;cursor:pointer;text-align:center}.ssa-tool .box{width:44px;height:44px;margin:0 auto 6px;border:1px solid #cbd7cf;border-radius:7px;background:#fff;display:grid;place-items:center;font-size:22px;color:#194d92}.ssa-tool.active .box{background:var(--ssa-green);color:#fff}
+.ssa-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:16px}.ssa-actions button{border:1px solid #cbd7cf;border-radius:8px;background:#f7faf8;padding:8px 10px;font-weight:700;cursor:pointer}.ssa-actions .green{background:var(--ssa-green);color:#fff;border-color:var(--ssa-green)}.ssa-actions .danger{background:#fff4f4;color:#942a2a;border-color:#e5b7b7}
+.ssa-readout{margin-top:14px;background:#edf5f0;border-radius:8px;padding:11px;line-height:1.45;min-height:42px}
+.ssa-section{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:#57655c;font-weight:800;margin:0 0 8px}
+.ssa-measure-overlay{position:absolute;inset:0;z-index:96;pointer-events:none;overflow:visible}
+.ssa-measure-overlay .halo{fill:none;stroke:#000;stroke-width:8;stroke-linecap:round;stroke-linejoin:round;opacity:.7}
+.ssa-measure-overlay .line{fill:none;stroke:#00eaff;stroke-width:4;stroke-linecap:round;stroke-linejoin:round}
+.ssa-measure-overlay .fill{fill:#00eaff;fill-opacity:.20;stroke:none}
+.ssa-measure-overlay .vertex{fill:#00eaff;stroke:#000;stroke-width:2}
+@media(max-width:760px){.ssa-build{display:none}.ssa-back{left:6px;top:6px;width:44px;height:44px}.ssa-rail{left:6px;top:56px}.ssa-rail button{width:44px;min-height:44px;font-size:9px}.ssa-panel{left:56px;top:6px;width:calc(100vw - 62px)}}
