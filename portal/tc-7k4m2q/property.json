@@ -191,7 +191,50 @@
       "id": "pumphouse",
       "name": "Pumphouse",
       "description": "",
-      "surveys": []
+      "surveys": [
+        {
+          "date": "2026-06-17",
+          "dateLabel": "17 Jun 2026",
+          "type": "RGB/MS",
+          "bounds": [
+            [
+              152.369361,
+              -30.8115872
+            ],
+            [
+              152.3736042,
+              -30.8089702
+            ]
+          ],
+          "center": [
+            152.3714826,
+            -30.8102787
+          ],
+          "layers": {
+            "rgb": {
+              "label": "RGB",
+              "tiles": "https://maps.southernskiesagritech.com.au/towal-creek/pumphouse/2026-06-17/rgb/{z}/{x}/{y}.png",
+              "scheme": "tms",
+              "minzoom": 14,
+              "maxzoom": 20
+            },
+            "ndvi": {
+              "label": "NDVI",
+              "tiles": "https://maps.southernskiesagritech.com.au/towal-creek/pumphouse/2026-06-17/ndvi/{z}/{x}/{y}.png",
+              "scheme": "tms",
+              "minzoom": 14,
+              "maxzoom": 20
+            },
+            "gndvi": {
+              "label": "GNDVI",
+              "tiles": "https://maps.southernskiesagritech.com.au/towal-creek/pumphouse/2026-06-17/gndvi/{z}/{x}/{y}.png",
+              "scheme": "tms",
+              "minzoom": 14,
+              "maxzoom": 20
+            }
+          }
+        }
+      ]
     }
   ],
   "storagePrefix": "towal-creek"
