@@ -1,7 +1,7 @@
 
 (function(global){
 'use strict';
-const VERSION='7.0.0';
+const VERSION='7.0.2';
 global.SSA_MAP_BUILD=VERSION;
 
 function load(src){return new Promise((ok,bad)=>{if(document.querySelector(`script[data-ssa="${src}"]`))return ok();const s=document.createElement('script');s.src=src;s.dataset.ssa=src;s.onload=ok;s.onerror=bad;document.head.appendChild(s)})}
@@ -41,9 +41,9 @@ class SSAUI{
  build(){
   const build=document.createElement('div');build.className='ssa-build';build.textContent='Map UI '+VERSION;this.container.appendChild(build);
   const back=document.createElement('button');back.className='ssa-back';back.innerHTML='<span>←</span>Back';back.onclick=()=>this.back();this.container.appendChild(back);
-  const rail=document.createElement('div');rail.className='ssa-rail';rail.innerHTML='<button data-r="layers"><span class="ico">▱</span>Layers</button><button data-r="identify"><span class="ico">ⓘ</span>Identify</button><button data-r="data"><span class="ico">＋</span>Data</button><button data-r="tools"><span class="ico">⌁</span>Use<br>Tools</button>';this.container.appendChild(rail);this.rail=rail;
+  const rail=document.createElement('div');rail.className='ssa-rail';rail.innerHTML='<button data-r="layers"><span class="ico">▱</span>Layers</button><button data-r="tools"><span class="ico">⌁</span>Use<br>Tools</button>';this.container.appendChild(rail);this.rail=rail;
   const panel=document.createElement('div');panel.className='ssa-panel hidden';panel.innerHTML='<div class="ssa-head"><span id="ssaTitle"></span><button class="ssa-close">×</button></div><div id="ssaBody"></div>';this.container.appendChild(panel);this.panel=panel;panel.querySelector('.ssa-close').onclick=()=>this.close();
-  rail.querySelector('[data-r=layers]').onclick=()=>this.openLayers();rail.querySelector('[data-r=identify]').onclick=()=>this.openIdentify();rail.querySelector('[data-r=data]').onclick=()=>this.openData();rail.querySelector('[data-r=tools]').onclick=()=>this.openTools();
+  rail.querySelector('[data-r=layers]').onclick=()=>this.openLayers();rail.querySelector('[data-r=tools]').onclick=()=>this.openTools();
   if(this.layers.length){const q=document.createElement('div');q.className='ssa-quick';q.innerHTML='<b>Imagery</b><select></select>';this.container.appendChild(q);this.quick=q;q.querySelector('select').onchange=e=>{this.setLayer(e.target.value);setTimeout(()=>{this.maps.forEach(m=>this.raise(m));this.legendFor(e.target.value,true)},50)}}
   this.legend=document.createElement('div');this.legend.className='ssa-legend hidden';this.container.appendChild(this.legend);
   this.info=document.createElement('div');this.info.className='ssa-info hidden';this.container.appendChild(this.info);
@@ -57,10 +57,26 @@ class SSAUI{
  openData(){this.active('data');this.panelSet('Data','<div class="ssa-pane active"><div class="ssa-actions"><label>Import KML / KMZ / GeoJSON<input id="imp" type="file" accept=".kml,.kmz,.geojson,.json"></label><button id="ek">Export KML</button><button id="eg">Export GeoJSON</button></div><div class="ssa-readout">Imported and drawn geometry is held in this browser session.</div></div>');this.panel.querySelector('#imp').onchange=e=>this.importFile(e.target.files[0]);this.panel.querySelector('#ek').onclick=()=>this.exportKML();this.panel.querySelector('#eg').onclick=()=>this.exportJSON()}
  grid(items){return '<div class="ssa-grid">'+items.map(i=>`<button class="ssa-tool" data-tool="${i[0]}" ${i[3]?'disabled':''}><span class="box">${i[1]}</span>${i[2]}</button>`).join('')+'</div>'}
  actions(){return `<div class="ssa-actions"><button class="green" data-act="shade">Shading: ${this.shaded?'On':'Off'}</button><button data-act="finish">Finish</button><button data-act="undo">Undo</button><button class="danger" data-act="clear">Clear</button></div>`}
- openTools(){this.active('tools');this.panelSet('Use map tools',`<div class="ssa-tabs"><button class="active" data-t="measure">Measure</button><button data-t="analyse">Analyse</button><button data-t="sketch">Sketch</button></div><div class="ssa-pane active" data-p="measure">${this.grid([['length','↔','Length'],['area','▱','Area'],['radius','◉','Radius']])}${this.actions()}<div class="ssa-readout">Choose a measurement tool.</div></div><div class="ssa-pane" data-p="analyse">${this.grid([['swipe','⇄','Swipe',!this.swipe],['shadow','◩','Shadow',true],['sight','⌁','Line Sight',true]])}<div class="ssa-readout">Swipe opens the comparison viewer. Shadow and Line Sight require elevation data.</div></div><div class="ssa-pane" data-p="sketch">${this.grid([['label','T','Label'],['pin','⌖','Pin'],['line','⌞','Line'],['polygon','▱','Polygon'],['rectangle','□','Rectangle'],['circle','○','Circle']])}${this.actions()}<div class="ssa-readout">Choose a sketch tool.</div></div>`);
-  this.panel.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{this.panel.querySelectorAll('[data-t]').forEach(x=>x.classList.toggle('active',x===b));this.panel.querySelectorAll('[data-p]').forEach(x=>x.classList.toggle('active',x.dataset.p===b.dataset.t))});
-  this.panel.querySelectorAll('[data-tool]').forEach(b=>b.onclick=()=>{if(b.dataset.tool==='swipe'){this.swipe();return}this.mode=b.dataset.tool;this.coords=[];this.panel.querySelectorAll('[data-tool]').forEach(x=>x.classList.toggle('active',x===b));this.sync()});
-  this.panel.querySelectorAll('[data-act=finish]').forEach(b=>b.onclick=()=>this.finish());this.panel.querySelectorAll('[data-act=undo]').forEach(b=>b.onclick=()=>this.undo());this.panel.querySelectorAll('[data-act=clear]').forEach(b=>b.onclick=()=>this.clear());this.panel.querySelectorAll('[data-act=shade]').forEach(b=>b.onclick=()=>{this.shaded=!this.shaded;this.maps.forEach(m=>{if(m.getLayer('ssa-v7-fill'))m.setPaintProperty('ssa-v7-fill','fill-opacity',this.shaded?.22:0)});this.panel.querySelectorAll('[data-act=shade]').forEach(x=>x.textContent='Shading: '+(this.shaded?'On':'Off'))});
+ openTools(){
+  this.active('tools');
+  this.panelSet('Measure',`<div class="ssa-pane active">
+    ${this.grid([['length','↔','Length'],['area','▱','Area'],['radius','◉','Radius']])}
+    ${this.actions()}
+    <div class="ssa-readout">Choose a measurement tool.</div>
+  </div>`);
+  this.panel.querySelectorAll('[data-tool]').forEach(b=>b.onclick=()=>{
+    this.mode=b.dataset.tool;this.coords=[];
+    this.panel.querySelectorAll('[data-tool]').forEach(x=>x.classList.toggle('active',x===b));
+    this.sync();
+  });
+  this.panel.querySelectorAll('[data-act=finish]').forEach(b=>b.onclick=()=>this.finish());
+  this.panel.querySelectorAll('[data-act=undo]').forEach(b=>b.onclick=()=>this.undo());
+  this.panel.querySelectorAll('[data-act=clear]').forEach(b=>b.onclick=()=>this.clear());
+  this.panel.querySelectorAll('[data-act=shade]').forEach(b=>b.onclick=()=>{
+    this.shaded=!this.shaded;
+    this.maps.forEach(m=>{if(m.getLayer('ssa-v7-fill'))m.setPaintProperty('ssa-v7-fill','fill-opacity',this.shaded?.22:0)});
+    this.panel.querySelectorAll('[data-act=shade]').forEach(x=>x.textContent='Shading: '+(this.shaded?'On':'Off'));
+  });
  }
  readout(){return this.panel.querySelector('.ssa-pane.active .ssa-readout')}
  click(e){if(this.identifyOnce){this.identifyOnce=false;const r=this.panel.querySelector('.ssa-readout');if(r)r.innerHTML=`<b>${e.lngLat.lng.toFixed(6)}, ${e.lngLat.lat.toFixed(6)}</b>`;return}if(!this.mode)return;const c=[e.lngLat.lng,e.lngLat.lat];if(this.mode==='label'){const t=prompt('Label text:','');if(t)this.features.push(turf.point(c,{name:t}));this.mode=null;this.sync();return}if(this.mode==='pin'){this.features.push(turf.point(c,{name:'Pin'}));this.mode=null;this.sync();return}this.coords.push(c);if(this.mode==='rectangle'&&this.coords.length===2){this.finish();return}if((this.mode==='radius'||this.mode==='circle')&&this.coords.length===2){this.finish();return}this.sync();this.update(this.coords)}
