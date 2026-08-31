@@ -19,3 +19,47 @@
 .ssa-measure-overlay .fill{fill:#00eaff;fill-opacity:.20;stroke:none}
 .ssa-measure-overlay .vertex{fill:#00eaff;stroke:#000;stroke-width:2}
 @media(max-width:760px){.ssa-build{display:none}.ssa-back{left:6px;top:6px;width:44px;height:44px}.ssa-rail{left:6px;top:56px}.ssa-rail button{width:44px;min-height:44px;font-size:9px}.ssa-panel{left:56px;top:6px;width:calc(100vw - 62px)}}
+
+
+/* v7.0.6 restore Terra-style imagery selector */
+.ssa-terra-strip{
+  position:absolute;z-index:95;left:50%;bottom:0;transform:translateX(-50%);
+  display:flex;gap:0;align-items:stretch;background:rgba(28,28,28,.94);
+  border-radius:7px 7px 0 0;overflow:hidden;box-shadow:0 -2px 12px #0003;
+  font:700 12px Arial,sans-serif;
+}
+.ssa-terra-strip button{
+  border:0;border-right:1px solid rgba(255,255,255,.16);background:#2b2b2b;color:#fff;
+  padding:11px 14px;cursor:pointer;min-width:54px;
+}
+.ssa-terra-strip button:last-child{border-right:0}
+.ssa-terra-strip button:hover{background:#3a3a3a}
+.ssa-terra-strip button.active{background:#1682ee;color:#fff}
+.ssa-terra-strip button.base{background:#1f5f43}
+.ssa-terra-strip button.base.active{background:#157a49}
+
+.ssa-compare-strips{
+  position:absolute;z-index:95;left:50%;bottom:0;transform:translateX(-50%);
+  display:flex;gap:10px;align-items:flex-end;
+}
+.ssa-compare-group{
+  background:rgba(28,28,28,.94);border-radius:7px 7px 0 0;overflow:hidden;
+  box-shadow:0 -2px 12px #0003;color:#fff;font:700 11px Arial,sans-serif;
+}
+.ssa-compare-label{padding:5px 9px;background:#111;color:#ddd;text-align:center}
+.ssa-compare-buttons{display:flex}
+.ssa-compare-buttons button{
+  border:0;border-right:1px solid rgba(255,255,255,.16);background:#2b2b2b;color:#fff;
+  padding:9px 11px;cursor:pointer;
+}
+.ssa-compare-buttons button:last-child{border-right:0}
+.ssa-compare-buttons button.active{background:#1682ee}
+.ssa-compare-buttons button.base{background:#1f5f43}
+.ssa-compare-buttons button.base.active{background:#157a49}
+
+@media(max-width:760px){
+  .ssa-terra-strip{max-width:calc(100vw - 12px);overflow-x:auto;left:6px;right:6px;transform:none}
+  .ssa-terra-strip button{padding:10px 12px;min-width:auto;white-space:nowrap}
+  .ssa-compare-strips{left:6px;right:6px;transform:none;overflow-x:auto;justify-content:flex-start}
+  .ssa-compare-group{flex:0 0 auto}
+}

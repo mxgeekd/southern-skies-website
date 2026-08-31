@@ -1,7 +1,7 @@
 
 (function(global){
 'use strict';
-const VERSION='7.0.5';
+const VERSION='7.0.6';
 global.SSA_MAP_BUILD=VERSION;
 
 function load(src){return new Promise((ok,bad)=>{if(document.querySelector(`script[data-ssa="${src}"]`))return ok();const s=document.createElement('script');s.src=src;s.dataset.ssa=src;s.onload=ok;s.onerror=bad;document.head.appendChild(s)})}
