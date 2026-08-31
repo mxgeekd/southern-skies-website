@@ -14,7 +14,9 @@ h1{margin:4px 0 3px}.sub{color:var(--muted)}main{padding:22px 0 45px}.crumb{font
 .paddock{display:block;text-decoration:none;color:inherit;border:1px solid var(--line);border-radius:12px;padding:15px;margin-bottom:12px}
 .paddock h3{margin:0 0 5px}.paddock p{margin:0;color:var(--muted);font-size:13px}.badges{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}.badge{font-size:12px;background:#edf5f0;padding:5px 8px;border-radius:999px}
 @media(max-width:760px){.grid{grid-template-columns:1fr}#map{height:360px}.wrap{padding:0 14px}}
-</style><link rel="stylesheet" href="/maps/tools/map-tools.css"><link rel="stylesheet" href="/maps/explorer/explorer.css">\n<link rel="stylesheet" href="/maps/ui/ssa-ui.css?v=7.0.0">
+</style>
+
+\n
 </head>
 <body><div class="top"><div class="wrap"><div class="ey">Southern Skies Agritech</div><h1 id="name">Property</h1><div class="sub" id="subtitle"></div></div></div>
 <main><div class="wrap"><div class="crumb"><a href="/">Southern Skies Agritech</a> / <span id="crumbName"></span></div>
@@ -30,8 +32,13 @@ const key=window.SSA_CONFIG?.ESRI_API_KEY||'';let style={version:8,sources:{},la
 try{const r=await fetch(`https://basemapstyles-api.arcgis.com/arcgis/rest/services/styles/v2/styles/arcgis/imagery/standard?token=${encodeURIComponent(key)}`);if(r.ok)style=await r.json()}catch(e){}
 style.sources=style.sources||{};style.layers=style.layers||[];
 const centers=data.paddocks.flatMap(p=>p.surveys.slice(-1).map(s=>s.center));const c=centers[0]||[152.37,-30.81];
-const map=new maplibregl.Map({container:'map',style,center:c,zoom:15});window.__ssaPropertyMap=map;map.addControl(new maplibregl.NavigationControl(),'top-right');
+const map=new maplibregl.Map({container:'map',style,center:c,zoom:15});map.addControl(new maplibregl.NavigationControl(),'top-right');
 map.on('load',()=>{const fs=data.paddocks.filter(p=>p.surveys.length).map(p=>{const s=p.surveys[p.surveys.length-1],b=s.bounds;return {type:'Feature',properties:{page:'./'+p.id+'/'},geometry:{type:'Polygon',coordinates:[[[b[0][0],b[0][1]],[b[1][0],b[0][1]],[b[1][0],b[1][1]],[b[0][0],b[1][1]],[b[0][0],b[0][1]]]]}}});if(fs.length){map.addSource('p',{type:'geojson',data:{type:'FeatureCollection',features:fs}});map.addLayer({id:'pf',type:'fill',source:'p',paint:{'fill-color':'#1f6f43','fill-opacity':.18}});map.addLayer({id:'pl',type:'line',source:'p',paint:{'line-color':'#1f6f43','line-width':2}});map.on('click','pf',e=>location.href=e.features[0].properties.page);}});
 })();
-</script><script src="/maps/tools/map-tools.js"></script><script>window.addEventListener('load',()=>setTimeout(()=>{try{if(window.__ssaPropertyMap)new SSAMapTools({map:window.__ssaPropertyMap,fileNameBase:'property-layer'})}catch(e){console.warn(e)}},500));</script><script src="/maps/explorer/explorer.js"></script>\n<script>\n/* SSA_PROPERTY_EXPLORER_V601 */\nwindow.addEventListener('load', () => {\n  setTimeout(() => {\n    try {\n      if (window.__ssaPropertyMap && window.SSAExplorer) {\n        new SSAExplorer({\n          map: window.__ssaPropertyMap,\n          back: () => history.length > 1 ? history.back() : location.assign('/'),\n          fit: () => {},\n          fileNameBase: 'property-layer'\n        });\n      }\n    } catch (e) { console.warn('Explorer init', e); }\n  }, 600);\n});\n</script>\n<script src="/maps/ui/ssa-ui.js?v=7.0.0"></script>
-<script>/* SSA_PROP_BUILD_7.0.0 */window.addEventListener('load',()=>setTimeout(()=>{try{if(window.__ssaPropertyMap&&window.SSAUI)new SSAUI({map:window.__ssaPropertyMap,back:()=>history.length>1?history.back():location.assign('/'),fit:()=>{},fileNameBase:'property-layer'})}catch(e){console.warn(e)}},600));</script></body></html>
+</script>
+
+
+\n
+\n
+
+</body></html>
