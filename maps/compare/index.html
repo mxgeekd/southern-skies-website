@@ -44,7 +44,7 @@
       root.appendChild(wrap);
     });
   }
- function refresh(){add(lmap,'ls','li',left,lk);add(rmap,'rs','ri',right,rk);buildCompareStrips();setTimeout(()=>ui&&ui.maps.forEach(m=>ui.raise(m)),20)}
+ function refresh(){add(lmap,'ls','li',left,lk);add(rmap,'rs','ri',right,rk);buildCompareStrips()}
  function sync(){const c=lmap.getCenter();rmap.jumpTo({center:[c.lng,c.lat],zoom:lmap.getZoom(),bearing:lmap.getBearing(),pitch:lmap.getPitch()})}lmap.on('move',sync);
  let x=innerWidth/2,drag=false;function clip(){x=Math.max(0,Math.min(x,innerWidth));handle.style.left=(x-1.5)+'px';rw.style.left=x+'px';rm.style.left=(-x)+'px';rm.style.width=innerWidth+'px';rm.style.height=innerHeight+'px';rmap.resize();sync()}
  Promise.all([new Promise(r=>lmap.on('load',r)),new Promise(r=>rmap.on('load',r))]).then(()=>{refresh();lmap.fitBounds(left.bounds,{padding:50,maxZoom:19});clip();const layers=[...new Map(p.surveys.flatMap(s=>Object.entries(s.layers).map(([id,L])=>[id,{id,label:L.label}]))).values()];ui=new SSAUI({maps:[lmap,rmap],masterMap:lmap,container:shell,layers,currentLayer:()=>lk,setLayer:k=>{if(left.layers[k]){lk=k;refresh()}},fit:()=>lmap.fitBounds(left.bounds,{padding:50,maxZoom:19}),back:()=>location.href=`/portal/${client}/${pid}/`,fileNameBase:`${data.name}-${p.name}-compare`.replace(/\s+/g,'-')})});
