@@ -1,0 +1,915 @@
+Southern Skies Agritech Mapping Platform — Project Handoff
+1. Current architecture / tech stack
+Public/client side
+Static HTML/CSS/JavaScript
+MapLibre GL JS 5.7.3
+Cloudflare Pages hosting
+GitHub source repository
+Cloudflare R2 raster tile storage
+ArcGIS Basemap Styles API for satellite imagery
+OpenStreetMap raster basemap
+No WordPress
+No MapTiler dependency
+No rclone
+Raster tiles uploaded to R2 using AWS CLI
+DJI Terra GeoTIFFs processed locally with GDAL
+Old GDAL version is 3.0.4, so gdal2tiles.py output is TMS, not XYZ. All survey raster sources therefore require:
+scheme: "tms"
+Local/admin side
+
+Runs inside WSL Ubuntu 20.04.
+
+Admin application:
+
+~/ssa-admin-tool
+
+Technology:
+
+Python 3.8
+Flask
+local browser UI at approximately:
+127.0.0.1:8765
+GDAL CLI tools
+AWS CLI
+Git
+Bash launch/install scripts
+
+Website repository:
+
+~/southern-skies-website
+
+Admin working data:
+
+~/.ssa-admin/work/
+R2
+
+Bucket:
+
+southern-skies-maps
+
+S3 endpoint:
+
+https://28b52d96eac801a46d9f752dc25c6cb4.r2.cloudflarestorage.com
+
+Public tile domain:
+
+https://maps.southernskiesagritech.com.au
+
+Example structure:
+
+towal-creek/
+    paddock-1-2/
+        2026-08-29/
+            rgb/
+                14/
+                15/
+                ...
+                20/
+            ndvi/
+            gndvi/
+
+    pumphouse/
+        2026-06-17/
+            rgb/
+            ndvi/
+            gndvi/
+
+Another property used:
+
+trc/
+    lot8/
+        2026-08-20/
+            rgb/
+2. Current website structure
+
+Important repository structure is approximately:
+
+~/southern-skies-website/
+│
+├── maps/
+│   ├── build.json
+│   ├── config.js
+│   │
+│   ├── view/
+│   │   └── index.html
+│   │
+│   ├── compare/
+│   │   └── index.html
+│   │
+│   ├── ui/
+│   │   ├── ssa-ui.css
+│   │   └── ssa-ui.js
+│   │
+│   └── explorer/
+│       ├── explorer.css
+│       └── explorer.js
+│
+└── portal/
+    ├── <obfuscated-property-id>/
+    │   ├── index.html
+    │   ├── property.json
+    │   │
+    │   └── <paddock-id>/
+    │       └── index.html
+    │
+    └── ...
+
+Example:
+
+portal/
+    trc-001/
+        index.html
+        property.json
+        lot8/
+            index.html
+
+The important architectural decision is that individual property pages must not contain independent copies of the mapping application.
+
+Property/paddock pages are essentially launchers.
+
+The actual shared mapping application is:
+
+/maps/view/index.html
+/maps/compare/index.html
+/maps/ui/ssa-ui.js
+/maps/ui/ssa-ui.css
+
+Therefore future fixes should normally modify the shared /maps/ application rather than every portal.
+
+Property data is held in:
+
+/portal/<client-id>/property.json
+
+and loaded dynamically by the map viewer.
+
+3. Property JSON model
+
+Representative structure:
+
+{
+  "id": "trc-0199",
+  "name": "Lot8 Toorumbee Creek Rd",
+  "subtitle": "Property imagery and survey history",
+  "storagePrefix": "trc",
+  "paddocks": [
+    {
+      "id": "trc1",
+      "name": "Lot8",
+      "description": "Lot 8, Lower home paddock",
+      "surveys": [
+        {
+          "date": "2026-08-20",
+          "dateLabel": "20 Aug 2026",
+          "type": "RGB Survey",
+          "bounds": [
+            [
+              152.3703172,
+              -30.8108527
+            ],
+            [
+              152.3764338,
+              -30.8082709
+            ]
+          ],
+          "center": [
+            152.3733755,
+            -30.8095618
+          ],
+          "layers": {
+            "rgb": {
+              "label": "RGB",
+              "tiles": "https://maps.southernskiesagritech.com.au/trc/lot8/2026-08-20/rgb/{z}/{x}/{y}.png",
+              "scheme": "tms",
+              "minzoom": 14,
+              "maxzoom": 20
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
+
+Critical requirement: all bounds stored in property.json must be WGS84 / EPSG:4326 longitude/latitude.
+
+A previous admin version incorrectly wrote projected coordinates such as:
+
+450411.63
+6567830.065
+
+from an EPSG:32756 source directly into JSON. The admin processor was subsequently changed to perform CRS-aware conversion to WGS84.
+
+4. Current admin tool structure
+
+Location:
+
+~/ssa-admin-tool/
+
+Known core files:
+
+ssa-admin-tool/
+├── app.py
+├── config.json
+├── requirements.txt
+├── install.sh
+├── start.sh
+├── templates/
+│   └── index.html
+└── .venv/
+
+Configuration contains:
+
+{
+  "WEBSITE_REPO": "/home/dylan/southern-skies-website",
+  "R2_BUCKET": "southern-skies-maps",
+  "R2_ENDPOINT": "https://28b52d96eac801a46d9f752dc25c6cb4.r2.cloudflarestorage.com",
+  "PUBLIC_TILE_BASE": "https://maps.southernskiesagritech.com.au",
+  "WORK_ROOT": "~/.ssa-admin/work",
+  "GIT_REMOTE": "origin",
+  "GIT_BRANCH": "",
+  "DEFAULT_ZOOM_RANGE": "14-20"
+}
+
+Current admin generation is in the v7.x platform generation. The most recent patch prepared was:
+
+Map UI 7.0.6
+
+The admin UI/version strings are also supposed to be updated with platform releases so the displayed version reflects what it actually generates.
+
+5. Admin workflow
+
+Admin UI has three conceptually separate operations.
+
+Create property
+
+Creates:
+
+unique property/client ID
+display name
+subtitle
+R2 storage prefix
+property portal
+property.json
+
+A Suggest button generates a random/obfuscated property ID so URLs do not need human-readable client identifiers.
+
+Create paddock
+
+Adds a paddock to an existing property's metadata.
+
+Includes:
+
+paddock ID
+paddock display name
+description
+Add survey
+
+Explicitly selects:
+
+Property
+Paddock
+Survey date
+Survey type
+DJI Terra/index-map source folder
+
+The Create Property/Create Paddock form values do not implicitly flow into Add Survey. This was deliberately clarified after an early concern that unfinished Lot 8 form values might contaminate a Towal Creek upload.
+
+6. Admin processing pipeline
+
+Three stages:
+
+1. Analyse
+2. Process locally
+3. Publish / Retry Publish
+Analyse
+
+Finds:
+
+result.tif
+NDVI.tif
+GNDVI.tif
+
+as applicable.
+
+RGB-only surveys are supported.
+
+Multispectral datasets may contain:
+
+RGB
+NDVI
+GNDVI
+
+with architecture intended to support additional indices later.
+
+It reads:
+
+dimensions
+CRS
+raster bounds
+index ranges
+
+and converts bounds to EPSG:4326.
+
+Process locally
+
+For RGB:
+
+gdal2tiles.py \
+  -z 14-20 \
+  -w none \
+  result.tif \
+  <work>/tiles/rgb
+
+Current maximum was deliberately throttled back to zoom 20 because zoom 22 generated roughly a gigabyte of PNGs even for a modest RGB survey.
+
+For multispectral indices the proven processing pipeline is:
+
+Extract RGB alpha footprint.
+Align footprint to index raster.
+Mask index raster outside RGB footprint.
+Convert outside pixels to -9999.
+Colour-relief index.
+Generate PNG tiles.
+Upload tiles.
+
+Example mask:
+
+gdal_calc.py \
+  -A NDVI.tif \
+  -B rgb_mask_aligned.tif \
+  --calc="where(B>0,A,-9999)" \
+  --NoDataValue=-9999 \
+  --type=Float32 \
+  --outfile=NDVI_masked.tif \
+  --overwrite
+
+Colour table:
+
+-9999 0 0 0 0
+-1.00 165 0 38 255
+0.00 215 48 39 255
+0.20 244 109 67 255
+0.40 254 224 139 255
+0.55 217 239 139 255
+0.70 102 189 99 255
+0.85 26 152 80 255
+1.00 0 104 55 255
+
+Then:
+
+gdaldem color-relief \
+  NDVI_masked.tif \
+  index-colours.txt \
+  NDVI_colour.tif \
+  -alpha
+
+followed by gdal2tiles.py.
+
+This footprint masking fixed the original orange rectangular backgrounds and stair-step index artefacts.
+
+Publish
+
+Uploads with AWS CLI:
+
+aws s3 sync \
+  <local tiles> \
+  s3://southern-skies-maps/<property>/<paddock>/<date>/<layer> \
+  --endpoint-url https://28b52d96eac801a46d9f752dc25c6cb4.r2.cloudflarestorage.com
+
+Updates property.json, generates/updates portal pages, commits and pushes Git.
+
+The admin also has Publish / Retry Publish, allowing an already processed job to be published again without rerunning GDAL.
+
+This was added after Git conflicts caused completed local processing/uploads to be stranded.
+
+7. Admin data-management functionality
+
+The admin portal can manage existing data.
+
+Supported operations include:
+
+edit property display name
+edit property subtitle
+edit paddock display name
+edit paddock description
+correct survey date
+change survey type
+move/update survey
+delete selected survey dataset
+delete selected paddock
+delete entire property
+
+Destructive operations require:
+
+DELETE
+
+confirmation.
+
+Deletion is intended to remove both:
+
+R2 objects
+portal metadata/pages
+
+There is also processed-job recovery for jobs where processing completed but publishing failed.
+
+8. Internal property directory
+
+A requirement added to the admin system is an internal list of property portals.
+
+Reason: property URLs use intentionally obscure/random IDs, making them impractical to remember manually.
+
+The admin interface therefore acts as the human-readable directory for:
+
+Property name → obscure portal URL
+
+while public/client URLs remain difficult to enumerate casually.
+
+9. Shared map viewer
+
+Current map viewer loads:
+
+/maps/config.js
+/maps/explorer/explorer.js
+/maps/ui/ssa-ui.js
+/maps/ui/ssa-ui.css
+
+and obtains the selected survey from:
+
+/portal/${client}/property.json
+
+using URL parameters for:
+
+client
+paddock
+survey/date
+
+MapLibre initializes from the survey's:
+
+center
+bounds
+layers
+
+Survey imagery is dynamically loaded as a raster source.
+
+Core behaviour is equivalent to:
+
+const layerKeys = Object.keys(s.layers);
+
+function show(k) {
+    const layer = s.layers[k];
+
+    if (map.getLayer("survey")) {
+        map.removeLayer("survey");
+    }
+
+    if (map.getSource("survey")) {
+        map.removeSource("survey");
+    }
+
+    map.addSource("survey", {
+        type: "raster",
+        tiles: [layer.tiles],
+        tileSize: 256,
+        scheme: layer.scheme || "tms",
+        minzoom: layer.minzoom || 14,
+        maxzoom: layer.maxzoom || 20,
+        bounds: [
+            s.bounds[0][0],
+            s.bounds[0][1],
+            s.bounds[1][0],
+            s.bounds[1][1]
+        ]
+    });
+
+    map.addLayer({
+        id: "survey",
+        type: "raster",
+        source: "survey"
+    });
+}
+
+The actual current files contain additional shared explorer/measurement logic; the complete exact byte-for-byte contents of the current repository files are not available in this handoff context, so they should be inspected from the repository before the next patch rather than reconstructed from this summary.
+
+That is particularly important now because repeated replacement patches caused the current regression.
+
+10. Basemaps
+
+Two basemap choices:
+
+Map
+Satellite
+
+Satellite is the desired/default primary view.
+
+Satellite comes from the ArcGIS Basemap Styles API.
+
+The API key is stored via:
+
+/maps/config.js
+
+and referenced through:
+
+SSA_CONFIG?.ESRI_API_KEY
+
+Do not expose or repeat the actual key.
+
+The key is referrer restricted.
+
+The working architecture loads the Esri imagery style once rather than repeatedly calling map.setStyle(). Basemap layers are toggled for Map/Satellite switching so survey layers remain intact.
+
+11. Terra-style imagery/index selector
+
+The desired viewer control is modelled on DJI Terra.
+
+Instead of hiding imagery selection in the Layers dialog, a permanent bottom strip should show only layers available for that dataset:
+
+MAP | SATELLITE | RGB | NDVI | GNDVI
+
+or, for RGB-only:
+
+MAP | SATELLITE | RGB
+
+Potential future multispectral set:
+
+MAP | SATELLITE | RGB | NDVI | GNDVI | LCI | NDRE | OSAVI
+
+This is generated dynamically from:
+
+Object.keys(s.layers)
+
+rather than hard-coded per property.
+
+The relevant existing viewer identifiers from the last known working selector implementation are:
+
+id="terraStrip"
+buildTerraStrip
+
+Compare has:
+
+id="compareStrips"
+buildCompareStrips
+
+and uses:
+
+__satellite__
+
+as a selectable comparison source.
+
+12. Index information
+
+When an index such as NDVI/GNDVI is selected, the design calls for:
+
+appropriate colour scale
+short explanation of what the index measures
+short description of its agricultural use
+
+This should appear automatically based on the selected index.
+
+RGB and Satellite do not require vegetation-index legends.
+
+13. Compare / swipe system
+
+Swipe comparison was successfully implemented and is considered an important client feature.
+
+It allows two imagery states to be compared with a draggable vertical divider.
+
+Desired logic:
+
+survey vs survey
+RGB vs index
+index vs index
+survey vs satellite
+if only one survey dataset exists, automatically make satellite available as the other side
+
+The compare application is shared:
+
+/maps/compare/index.html
+
+rather than generated separately for every property.
+
+14. Measurement UI — current design
+
+The toolset was progressively simplified.
+
+Removed for now:
+
+Identify
+Data
+Analyse tab
+Sketch tab
+
+These may return later.
+
+Current sidebar:
+
+Back
+Layers
+Use Tools
+
+The Back button is intended to be universal.
+
+The measurement panel is now inspired by Google Earth rather than having independent Distance and Area tools.
+
+Current tools:
+
+Path / Polygon
+Radius
+
+For Path / Polygon:
+
+click successive points
+live length
+heading
+point count
+Finish path
+Close polygon
+closing converts the same path into an area polygon
+hectares
+square metres
+perimeter
+shading on/off
+Undo
+Clear
+
+This avoids separate line/polygon tools.
+
+15. Polygon rendering bug that was solved
+
+For several versions:
+
+calculations worked
+hectares/perimeter were correct
+polygon fill could appear
+polygon/path outlines were invisible
+
+This initially looked like a MapLibre layer ordering issue.
+
+Several attempts to force MapLibre measurement layers above the survey raster failed.
+
+The successful solution was to stop depending on MapLibre's layer stack for the interactive measurement geometry.
+
+The current measurement geometry is rendered using a dedicated SVG overlay above the MapLibre canvas.
+
+Known identifiers include:
+
+ssa-measure-overlay
+renderOverlay
+
+This solved the problem.
+
+Confirmed working result:
+
+bright cyan polygon outline visible above RGB orthomosaic
+dark contrast stroke beneath it
+polygon remains visible with shading off
+area calculation works
+
+Example confirmed result:
+
+5.707 ha
+57071 m²
+perimeter 1.39 km
+
+This is the measurement implementation that must not be reverted.
+
+16. Current bug — immediate troubleshooting target
+
+The latest confirmed state is:
+
+Polygon rendering now works correctly, but the Terra-style imagery/index selector disappeared.
+
+Screenshot showed:
+
+Path / Polygon works
+polygon outline clearly visible
+area calculation works
+shading works
+satellite + RGB display works
+
+But:
+
+MAP | SATELLITE | RGB | NDVI | GNDVI
+
+is no longer visible at the bottom.
+
+This regression appeared immediately after the SVG measurement-overlay fix.
+
+Most likely cause identified:
+
+v7.0.5 replaced/rewrote the shared ssa-ui.css / UI assets while adding the SVG overlay and accidentally removed the CSS required by the existing Terra selector.
+
+The selector's JavaScript logic appears to still exist in:
+
+maps/view/index.html
+
+with:
+
+id="terraStrip"
+buildTerraStrip
+
+and in compare:
+
+id="compareStrips"
+buildCompareStrips
+
+Therefore the current strategy is not to rewrite the viewer again.
+
+The patch should preserve the working SVG measurement implementation and restore the selector styling/behaviour.
+
+17. Latest prepared patch: v7.0.6
+
+A patch was generated named:
+
+ssa-map-platform-v7.0.6-restore-selector.zip
+
+It contains:
+
+apply-v7.0.6.py
+verify-v7.0.6.py
+README.txt
+
+Its intended changes are:
+
+KEEP:
+✓ working SVG measurement overlay
+✓ visible cyan polygon/path
+✓ Path / Polygon
+✓ Radius
+✓ shading
+✓ area/length calculations
+
+RESTORE:
+✓ Map
+✓ Satellite
+✓ RGB
+✓ NDVI
+✓ GNDVI
+✓ any other available survey index
+
+COMPARE:
+✓ left imagery strip
+✓ right imagery strip
+✓ satellite comparison
+
+The patch performs safety checks before modification:
+
+checks=[
+    ('view terraStrip','id="terraStrip"' in view),
+    ('view buildTerraStrip','buildTerraStrip' in view),
+    ('compare compareStrips','id="compareStrips"' in compare),
+    ('compare buildCompareStrips','buildCompareStrips' in compare),
+]
+
+It aborts rather than rewriting the viewer if those expected controls no longer exist.
+
+The selector CSS being restored is:
+
+.ssa-terra-strip{
+  position:absolute;
+  z-index:95;
+  left:50%;
+  bottom:0;
+  transform:translateX(-50%);
+  display:flex;
+  gap:0;
+  align-items:stretch;
+  background:rgba(28,28,28,.94);
+  border-radius:7px 7px 0 0;
+  overflow:hidden;
+  box-shadow:0 -2px 12px #0003;
+  font:700 12px Arial,sans-serif;
+}
+
+.ssa-terra-strip button{
+  border:0;
+  border-right:1px solid rgba(255,255,255,.16);
+  background:#2b2b2b;
+  color:#fff;
+  padding:11px 14px;
+  cursor:pointer;
+  min-width:54px;
+}
+
+.ssa-terra-strip button:last-child{
+  border-right:0;
+}
+
+.ssa-terra-strip button:hover{
+  background:#3a3a3a;
+}
+
+.ssa-terra-strip button.active{
+  background:#1682ee;
+  color:#fff;
+}
+
+.ssa-terra-strip button.base{
+  background:#1f5f43;
+}
+
+.ssa-terra-strip button.base.active{
+  background:#157a49;
+}
+
+Compare styling:
+
+.ssa-compare-strips{
+  position:absolute;
+  z-index:95;
+  left:50%;
+  bottom:0;
+  transform:translateX(-50%);
+  display:flex;
+  gap:10px;
+  align-items:flex-end;
+}
+
+.ssa-compare-group{
+  background:rgba(28,28,28,.94);
+  border-radius:7px 7px 0 0;
+  overflow:hidden;
+  box-shadow:0 -2px 12px #0003;
+  color:#fff;
+  font:700 11px Arial,sans-serif;
+}
+
+.ssa-compare-label{
+  padding:5px 9px;
+  background:#111;
+  color:#ddd;
+  text-align:center;
+}
+
+.ssa-compare-buttons{
+  display:flex;
+}
+
+.ssa-compare-buttons button{
+  border:0;
+  border-right:1px solid rgba(255,255,255,.16);
+  background:#2b2b2b;
+  color:#fff;
+  padding:9px 11px;
+  cursor:pointer;
+}
+
+.ssa-compare-buttons button.active{
+  background:#1682ee;
+}
+
+.ssa-compare-buttons button.base{
+  background:#1f5f43;
+}
+
+.ssa-compare-buttons button.base.active{
+  background:#157a49;
+}
+
+Mobile handling:
+
+@media(max-width:760px){
+  .ssa-terra-strip{
+    max-width:calc(100vw - 12px);
+    overflow-x:auto;
+    left:6px;
+    right:6px;
+    transform:none;
+  }
+
+  .ssa-terra-strip button{
+    padding:10px 12px;
+    min-width:auto;
+    white-space:nowrap;
+  }
+
+  .ssa-compare-strips{
+    left:6px;
+    right:6px;
+    transform:none;
+    overflow-x:auto;
+    justify-content:flex-start;
+  }
+
+  .ssa-compare-group{
+    flex:0 0 auto;
+  }
+}
+
+The patch also changes the shared JS version to:
+
+const VERSION='7.0.6';
+
+and cache-busts:
+
+ssa-ui.css?v=7.0.6
+ssa-ui.js?v=7.0.6
+
+with:
+
+{
+  "version": "7.0.6"
+}
+
+in:
+
+/maps/build.json
