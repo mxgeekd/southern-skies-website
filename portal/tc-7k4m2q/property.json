@@ -235,6 +235,12 @@
           }
         }
       ]
+    },
+    {
+      "id": "styc",
+      "name": "Stockyard Creek",
+      "description": "",
+      "surveys": []
     }
   ],
   "storagePrefix": "towal-creek"
