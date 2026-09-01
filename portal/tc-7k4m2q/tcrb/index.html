@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Paddock - Southern Skies Agritech</title>
+<style>
+:root{--g:#1f6f43;--ink:#19231c;--muted:#66736a;--line:#dce4de;--soft:#f2f5f3}*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;color:var(--ink);background:var(--soft)}
+.wrap{max-width:1120px;margin:auto;padding:0 20px}.top{background:#fff;border-bottom:1px solid var(--line);padding:16px 0}.ey{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--g);font-weight:800}
+h1{margin:4px 0 3px}.sub,.muted{color:var(--muted)}main{padding:22px 0 45px}.crumb{font-size:13px;margin-bottom:14px}.grid{display:grid;grid-template-columns:1.45fr .8fr;gap:18px}
+.card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px;box-shadow:0 5px 20px #0000000d}.sec{font-size:13px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;margin-bottom:12px}
+.event{border:1px solid var(--line);border-radius:12px;padding:15px;margin:0 0 12px}.date{font-size:12px;color:var(--g);font-weight:800}.event h3{margin:5px 0}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:11px}
+.btn{display:inline-block;text-decoration:none;border:0;background:var(--g);color:#fff;padding:9px 12px;border-radius:8px;font-weight:800}.btn.alt{background:#edf4ef;color:#25402e;border:1px solid #cfdbd3}
+select{width:100%;padding:9px;border:1px solid #ccd8d0;border-radius:8px;background:#fff;margin:5px 0 9px;font-weight:700}.compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+@media(max-width:760px){.grid{grid-template-columns:1fr}.wrap{padding:0 14px}.compare-grid{grid-template-columns:1fr}}
+</style><link rel="stylesheet" href="/maps/explorer/explorer.css"></head>
+<body><div class="top"><div class="wrap"><div class="ey">Southern Skies Agritech</div><h1 id="pname">Paddock</h1><div class="sub" id="propname"></div></div></div>
+<main><div class="wrap"><div class="crumb"><a id="back" href="../">Back to property</a></div>
+<div class="grid"><div class="card"><div class="sec">Survey history</div><div id="timeline"></div></div>
+<div><div class="card"><div class="sec">Paddock</div><h2 id="summaryName" style="margin-top:0"></h2><p class="muted" id="summary"></p></div>
+<div class="card" id="compareCard" style="margin-top:18px"><div class="sec">Compare surveys</div><div class="compare-grid"><div>Earlier / left<select id="leftDate"></select></div><div>Later / right<select id="rightDate"></select></div></div><a class="btn" id="compareBtn" href="#">Open swipe comparison</a></div></div>
+</div></div></main>
+<script>
+(async function(){
+const paddockId='tcrb';const data=await fetch('../property.json').then(r=>r.json());const p=data.paddocks.find(x=>x.id===paddockId);if(!p)throw new Error('Paddock not found');
+document.getElementById('pname').textContent=document.getElementById('summaryName').textContent=p.name;document.getElementById('propname').textContent=data.name;document.getElementById('back').textContent='Back to '+data.name;document.title=p.name+' - '+data.name;
+const surveys=[...p.surveys].sort((a,b)=>b.date.localeCompare(a.date));document.getElementById('summary').textContent=`${surveys.length} survey${surveys.length===1?'':'s'} available${surveys[0]?'. Latest: '+surveys[0].dateLabel+'.':''}`;
+function view(d){return `/maps/view/?client=${encodeURIComponent(data.id)}&paddock=${encodeURIComponent(p.id)}&date=${encodeURIComponent(d)}`}
+surveys.forEach(s=>{const div=document.createElement('div'),date=document.createElement('div'),h3=document.createElement('h3'),layers=document.createElement('div'),actions=document.createElement('div'),link=document.createElement('a');div.className='event';date.className='date';date.textContent=s.dateLabel;h3.textContent=s.type||'Survey';layers.className='muted';layers.textContent=Object.values(s.layers).map(x=>x.label).join(' · ');actions.className='actions';link.className='btn';link.href=view(s.date);link.textContent='View imagery';actions.appendChild(link);div.append(date,h3,layers,actions);document.getElementById('timeline').appendChild(div)});
+if(surveys.length<2){document.getElementById('compareCard').style.display='none';return}
+const chronological=[...surveys].reverse();[document.getElementById('leftDate'),document.getElementById('rightDate')].forEach(sel=>chronological.forEach(s=>{const o=document.createElement('option');o.value=s.date;o.textContent=s.dateLabel;sel.appendChild(o)}));document.getElementById('leftDate').value=chronological[0].date;document.getElementById('rightDate').value=chronological[chronological.length-1].date;
+function update(){document.getElementById('compareBtn').href=`/maps/compare/?client=${encodeURIComponent(data.id)}&paddock=${encodeURIComponent(p.id)}&left=${encodeURIComponent(document.getElementById('leftDate').value)}&right=${encodeURIComponent(document.getElementById('rightDate').value)}&layer=ndvi`}
+document.getElementById('leftDate').onchange=document.getElementById('rightDate').onchange=update;update();
+})();
+</script></body></html>
