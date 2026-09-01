@@ -240,7 +240,50 @@
       "id": "styc",
       "name": "Stockyard Creek",
       "description": "",
-      "surveys": []
+      "surveys": [
+        {
+          "date": "2026-06-16",
+          "dateLabel": "16 Jun 2026",
+          "type": "RGBMS",
+          "bounds": [
+            [
+              152.3636494,
+              -30.8250756
+            ],
+            [
+              152.3680218,
+              -30.8222684
+            ]
+          ],
+          "center": [
+            152.3658356,
+            -30.823672
+          ],
+          "layers": {
+            "rgb": {
+              "label": "RGB",
+              "tiles": "https://maps.southernskiesagritech.com.au/towal-creek/styc/2026-06-16/rgb/{z}/{x}/{y}.png",
+              "scheme": "tms",
+              "minzoom": 14,
+              "maxzoom": 20
+            },
+            "ndvi": {
+              "label": "NDVI",
+              "tiles": "https://maps.southernskiesagritech.com.au/towal-creek/styc/2026-06-16/ndvi/{z}/{x}/{y}.png",
+              "scheme": "tms",
+              "minzoom": 14,
+              "maxzoom": 20
+            },
+            "gndvi": {
+              "label": "GNDVI",
+              "tiles": "https://maps.southernskiesagritech.com.au/towal-creek/styc/2026-06-16/gndvi/{z}/{x}/{y}.png",
+              "scheme": "tms",
+              "minzoom": 14,
+              "maxzoom": 20
+            }
+          }
+        }
+      ]
     }
   ],
   "storagePrefix": "towal-creek"
