@@ -25,6 +25,7 @@
     current=k;
     baseMode='imagery';
     updateTerraButtons();
+    if(ui)ui.legendFor(k,true);
     setTimeout(()=>ui&&ui.maps.forEach(m=>ui.raise(m)),20);
   }
   let baseMode='imagery';
@@ -34,6 +35,7 @@
     if(map.getLayer('survey'))map.setLayoutProperty('survey','visibility',mode==='imagery'?'visible':'none');
     baseMode=mode;
     updateTerraButtons();
+    if(ui)ui.legendFor(mode,false);
   }
   function base(sat){setBaseMode(sat?'satellite':'map')}
   function buildTerraStrip(){

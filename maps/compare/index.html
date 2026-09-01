@@ -38,7 +38,7 @@
         const b=document.createElement('button');b.textContent=c.label;b.dataset.choice=c.id;
         if(c.base)b.classList.add('base');
         b.classList.toggle('active',g.get()===c.id);
-        b.onclick=()=>{g.set(c.id);if(ui&&c.id!=='__satellite__')ui.legendFor(c.id,true);};
+        b.onclick=()=>{g.set(c.id);if(ui)ui.legendFor(c.id,true);};
         buttons.appendChild(b);
       });
       root.appendChild(wrap);

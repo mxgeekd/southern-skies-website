@@ -18,6 +18,8 @@
 .ssa-measure-overlay .line{fill:none;stroke:#00eaff;stroke-width:4;stroke-linecap:round;stroke-linejoin:round}
 .ssa-measure-overlay .fill{fill:#00eaff;fill-opacity:.20;stroke:none}
 .ssa-measure-overlay .vertex{fill:#00eaff;stroke:#000;stroke-width:2}
+.ssa-legend{position:absolute;z-index:95;right:12px;bottom:64px;width:235px;max-width:calc(100vw - 24px);box-sizing:border-box;background:#fffffff5;border:1px solid var(--ssa-line);border-radius:10px;padding:10px;box-shadow:0 4px 16px #0002;font:12px Arial,sans-serif;color:var(--ssa-ink);pointer-events:none}
+.ssa-legend.hidden{display:none}.ssa-legend-head{font-weight:800;margin-bottom:5px}.ssa-legend-head small{font-weight:600;color:#56635a}.ssa-legend-desc{line-height:1.35;margin-bottom:8px}.ssa-gradient{height:13px;border-radius:5px;background:linear-gradient(90deg,rgb(165,0,38),rgb(215,48,39),rgb(244,109,67),rgb(254,224,139),rgb(217,239,139),rgb(102,189,99),rgb(26,152,80),rgb(0,104,55));border:1px solid #ccd5cf}.ssa-ticks{display:flex;justify-content:space-between;font-size:10px;margin-top:4px}
 @media(max-width:760px){.ssa-build{display:none}.ssa-back{left:6px;top:6px;width:44px;height:44px}.ssa-rail{left:6px;top:56px}.ssa-rail button{width:44px;min-height:44px;font-size:9px}.ssa-panel{left:56px;top:6px;width:calc(100vw - 62px)}}
 
 

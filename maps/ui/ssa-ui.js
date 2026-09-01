@@ -3,6 +3,13 @@
 'use strict';
 const VERSION='7.0.6';
 global.SSA_MAP_BUILD=VERSION;
+const INDEX_INFO=Object.freeze({
+ ndvi:{name:'NDVI',subtitle:'Vegetation vigour index',description:'Highlights relative vegetation vigour and biomass. Higher values generally indicate denser or more actively growing vegetation.',signed:true},
+ gndvi:{name:'GNDVI',subtitle:'Green chlorophyll / canopy response',description:'More sensitive to green reflectance and commonly used as a chlorophyll and canopy-response indicator.',signed:true},
+ ndre:{name:'NDRE',subtitle:'Red-edge vegetation response',description:'Uses the red-edge band and is useful for looking at chlorophyll and crop stress in denser canopy.',signed:false},
+ osavi:{name:'OSAVI',subtitle:'Soil-adjusted vegetation response',description:'Reduces visible-soil background influence when assessing vegetation condition.',signed:false},
+ lci:{name:'LCI',subtitle:'Leaf chlorophyll indicator',description:'Used as a relative indicator of leaf chlorophyll response.',signed:false}
+});
 
 function load(src){return new Promise((ok,bad)=>{if(document.querySelector(`script[data-ssa="${src}"]`))return ok();const s=document.createElement('script');s.src=src;s.dataset.ssa=src;s.onload=ok;s.onerror=bad;document.head.appendChild(s)})}
 async function deps(){if(!global.turf)await load('https://cdn.jsdelivr.net/npm/@turf/turf@7.2.0/turf.min.js')}
@@ -25,6 +32,7 @@ class SSAUI{
  async init(){
   await deps();
   this.build();
+  this.legendFor(this.current(),false);
   this.master.doubleClickZoom.disable();
   this.master.on('click',e=>this.click(e));
   this.master.on('dblclick',e=>{if(this.mode==='pathpoly'){e.preventDefault();this.finishPath()}});
@@ -46,6 +54,8 @@ class SSAUI{
   panel.querySelector('.ssa-close').onclick=()=>this.close();
   rail.querySelector('[data-r=layers]').onclick=()=>this.openLayers();
   rail.querySelector('[data-r=tools]').onclick=()=>this.openTools();
+
+  const legend=document.createElement('div');legend.className='ssa-legend hidden';legend.setAttribute('aria-live','polite');this.container.appendChild(legend);this.legend=legend;
  }
  active(name){this.rail.querySelectorAll('button').forEach(b=>b.classList.toggle('active',b.dataset.r===name))}
  close(){this.panel.classList.add('hidden');this.active(null)}
@@ -56,6 +66,24 @@ class SSAUI{
   this.panel.querySelector('#bm').onclick=()=>this.setBase(false);
   this.panel.querySelector('#bs').onclick=()=>this.setBase(true);
   this.panel.querySelector('#fit').onclick=()=>this.fit();
+ }
+ legendFor(id,flash=false){
+  if(!this.legend)return null;
+  const key=typeof id==='string'?id.trim().toLowerCase():'';
+  if(!key||['rgb','map','satellite','__satellite__'].includes(key)){
+   this.legend.replaceChildren();this.legend.classList.add('hidden');return null;
+  }
+  const x=INDEX_INFO[key]||{name:String(id).toUpperCase(),subtitle:'Vegetation index',description:'Relative vegetation-index layer. Interpret lower and higher values in the context of the specific index and field conditions.',signed:false};
+  const head=document.createElement('div');head.className='ssa-legend-head';
+  const title=document.createElement('span');title.textContent=x.name;
+  const sub=document.createElement('small');sub.textContent=x.subtitle;title.appendChild(document.createElement('br'));title.appendChild(sub);head.appendChild(title);
+  const desc=document.createElement('div');desc.className='ssa-legend-desc';desc.textContent=x.description;
+  const gradient=document.createElement('div');gradient.className='ssa-gradient';
+  const ticks=document.createElement('div');ticks.className='ssa-ticks';
+  (x.signed?['-1','0','0.4','0.7','1']:['Lower','Higher']).forEach(v=>{const span=document.createElement('span');span.textContent=v;ticks.appendChild(span)});
+  this.legend.replaceChildren(head,desc,gradient,ticks);this.legend.classList.remove('hidden');
+  void flash;
+  return x;
  }
  openTools(){
   this.active('tools');
