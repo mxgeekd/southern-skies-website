@@ -132,6 +132,15 @@
               "scheme": "tms",
               "minzoom": 14,
               "maxzoom": 20
+            },
+            "hillshade": {
+              "label": "Relief",
+              "tiles": "https://maps.southernskiesagritech.com.au/towal-creek/2026-08-29/paddock-1-2/relief/{z}/{x}/{y}.png",
+              "scheme": "tms",
+              "minzoom": 14,
+              "maxzoom": 20,
+              "opacity": 0.65,
+              "modelType": "DTM"
             }
           }
         }
@@ -182,6 +191,15 @@
               "scheme": "tms",
               "minzoom": 14,
               "maxzoom": 20
+            },
+            "hillshade": {
+              "label": "Surface relief",
+              "tiles": "https://maps.southernskiesagritech.com.au/towal-creek/2026-08-29/relief/{z}/{x}/{y}.png",
+              "scheme": "tms",
+              "minzoom": 14,
+              "maxzoom": 20,
+              "opacity": 0.65,
+              "modelType": "DSM"
             }
           }
         }
@@ -231,6 +249,15 @@
               "scheme": "tms",
               "minzoom": 14,
               "maxzoom": 20
+            },
+            "hillshade": {
+              "label": "Relief",
+              "tiles": "https://maps.southernskiesagritech.com.au/towal-creek/pumphouse/2026-06-17/relief/{z}/{x}/{y}.png",
+              "scheme": "tms",
+              "minzoom": 14,
+              "maxzoom": 20,
+              "opacity": 0.65,
+              "modelType": "DTM"
             }
           }
         }
@@ -280,6 +307,15 @@
               "scheme": "tms",
               "minzoom": 14,
               "maxzoom": 20
+            },
+            "hillshade": {
+              "label": "Relief",
+              "tiles": "https://maps.southernskiesagritech.com.au/towal-creek/styc/2026-06-16/relief/{z}/{x}/{y}.png",
+              "scheme": "tms",
+              "minzoom": 14,
+              "maxzoom": 20,
+              "opacity": 0.65,
+              "modelType": "DTM"
             }
           }
         }
