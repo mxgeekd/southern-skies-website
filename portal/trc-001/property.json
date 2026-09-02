@@ -36,17 +36,12 @@
               "maxzoom": 22
             },
             "hillshade": {
-              "label": "Hillshade",
-              "tiles": "https://maps.southernskiesagritech.com.au/trc/lot8/2026-08-20/hillshade/{z}/{x}/{y}.png",
+              "label": "Relief",
+              "tiles": "https://maps.southernskiesagritech.com.au/trc/lot8/2026-08-20/relief/{z}/{x}/{y}.png",
               "scheme": "tms",
               "minzoom": 14,
               "maxzoom": 20,
-              "opacity": 0.4,
-              "range": [
-                141.284,
-                319.536
-              ],
-              "units": "m"
+              "opacity": 0.65
             }
           }
         }
