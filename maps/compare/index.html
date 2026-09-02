@@ -13,16 +13,18 @@
  const q=new URLSearchParams(location.search),client=q.get('client'),pid=q.get('paddock'),leftQ=q.get('left'),rightQ=q.get('right'),layerQ=q.get('layer')||'rgb';
  const data=await fetch(`/portal/${client}/property.json?b=7.0.6`).then(r=>r.json()),p=data.paddocks.find(x=>x.id===pid);
  const SAT={date:'__satellite__',dateLabel:'Satellite',center:p.surveys[0]?.center||[152,-31],bounds:p.surveys[0]?.bounds||[[151,-32],[153,-30]],layers:{}};
- let left=p.surveys.find(x=>x.date===leftQ)||p.surveys[0],right=rightQ==='__satellite__'?SAT:(p.surveys.find(x=>x.date===rightQ)||SAT),lk=left.layers[layerQ]?layerQ:Object.keys(left.layers)[0],rk=right===SAT?'__satellite__':(right.layers[layerQ]?layerQ:Object.keys(right.layers)[0]);
+ let left=p.surveys.find(x=>x.date===leftQ)||p.surveys[0],right=rightQ==='__satellite__'?SAT:(p.surveys.find(x=>x.date===rightQ)||SAT),pick=s=>s===SAT?'satellite':(s.layers[layerQ]?layerQ:(['rgb','ndvi','gndvi'].find(k=>s.layers[k])||'satellite')),lk=pick(left),rk=pick(right);
  const key=window.SSA_CONFIG?.ESRI_API_KEY||'';let style={version:8,sources:{},layers:[]};try{const r=await fetch(`https://basemapstyles-api.arcgis.com/arcgis/rest/services/styles/v2/styles/arcgis/imagery/standard?token=${encodeURIComponent(key)}`);if(r.ok)style=await r.json()}catch(e){}
+ style.sources=style.sources||{};style.layers=style.layers||[];const esri=style.layers.map(x=>x.id);
+ style.sources.ssa_osm={type:'raster',tiles:['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],tileSize:256};
+ style.layers.unshift({id:'ssa-osm',type:'raster',source:'ssa_osm',layout:{visibility:'none'}});
  const lmap=new maplibregl.Map({container:'lm',style:JSON.parse(JSON.stringify(style)),center:left.center,zoom:16}),rmap=new maplibregl.Map({container:'rm',style:JSON.parse(JSON.stringify(style)),center:left.center,zoom:16,interactive:false,attributionControl:false});lmap.addControl(new maplibregl.NavigationControl(),'top-right');let ui;
- function add(m,src,id,s,k){if(m.getLayer(id))m.removeLayer(id);if(m.getSource(src))m.removeSource(src);if(s===SAT||k==='__satellite__')return;const L=s.layers[k];m.addSource(src,{type:'raster',tiles:[L.tiles],tileSize:256,minzoom:L.minzoom||14,maxzoom:L.maxzoom||20,scheme:L.scheme||'tms',bounds:[s.bounds[0][0],s.bounds[0][1],s.bounds[1][0],s.bounds[1][1]]});m.addLayer({id,type:'raster',source:src})}
+ const baseMode={left:'satellite',right:'satellite'};
+ function setBase(m,mode,side){if(m.getLayer('ssa-osm'))m.setLayoutProperty('ssa-osm','visibility',mode==='map'?'visible':'none');esri.forEach(id=>{if(m.getLayer(id))m.setLayoutProperty(id,'visibility',mode==='satellite'?'visible':'none')});if(m.getLayer(side+'-survey'))m.setLayoutProperty(side+'-survey','visibility',mode==='imagery'?'visible':'none');baseMode[side]=mode}
+ function add(m,src,id,s,k,side){if(m.getLayer(id))m.removeLayer(id);if(m.getSource(src))m.removeSource(src);if(k==='map'||k==='satellite'||s===SAT){setBase(m,k==='map'?'map':'satellite',side);return}const L=s.layers[k];if(!L)return; m.addSource(src,{type:'raster',tiles:[L.tiles],tileSize:256,minzoom:L.minzoom||14,maxzoom:L.maxzoom||20,scheme:L.scheme||'tms',bounds:[s.bounds[0][0],s.bounds[0][1],s.bounds[1][0],s.bounds[1][1]]});m.addLayer({id,type:'raster',source:src});setBase(m,'imagery',side)}
  function availableChoices(s){
-    if(s===SAT)return [{id:'__satellite__',label:'Satellite',base:true}];
-    return [
-      {id:'__satellite__',label:'Satellite',base:true},
-      ...Object.entries(s.layers).map(([id,L])=>({id,label:L.label,base:false}))
-    ];
+    return [{id:'map',label:'Map',base:true},{id:'satellite',label:'Satellite',base:true},
+      {id:'rgb',label:'RGB'},{id:'ndvi',label:'NDVI'},{id:'gndvi',label:'GNDVI'}];
   }
   function buildCompareStrips(){
     const root=document.getElementById('compareStrips');root.innerHTML='';
@@ -38,16 +40,16 @@
         const b=document.createElement('button');b.textContent=c.label;b.dataset.choice=c.id;
         if(c.base)b.classList.add('base');
         b.classList.toggle('active',g.get()===c.id);
-        b.onclick=()=>{g.set(c.id);if(ui)ui.legendFor(c.id,true);};
+        b.onclick=()=>{if(!c.base&&!g.survey.layers[c.id])return;g.set(c.id);if(ui)ui.legendFor(c.id,true);};
         buttons.appendChild(b);
       });
       root.appendChild(wrap);
     });
   }
- function refresh(){add(lmap,'ls','li',left,lk);add(rmap,'rs','ri',right,rk);buildCompareStrips()}
+ function refresh(){add(lmap,'ls','li',left,lk,'left');add(rmap,'rs','ri',right,rk,'right');buildCompareStrips()}
  function sync(){const c=lmap.getCenter();rmap.jumpTo({center:[c.lng,c.lat],zoom:lmap.getZoom(),bearing:lmap.getBearing(),pitch:lmap.getPitch()})}lmap.on('move',sync);
  let x=innerWidth/2,drag=false;function clip(){x=Math.max(0,Math.min(x,innerWidth));handle.style.left=(x-1.5)+'px';rw.style.left=x+'px';rm.style.left=(-x)+'px';rm.style.width=innerWidth+'px';rm.style.height=innerHeight+'px';rmap.resize();sync()}
- Promise.all([new Promise(r=>lmap.on('load',r)),new Promise(r=>rmap.on('load',r))]).then(()=>{refresh();lmap.fitBounds(left.bounds,{padding:50,maxZoom:19});clip();const layers=[...new Map(p.surveys.flatMap(s=>Object.entries(s.layers).map(([id,L])=>[id,{id,label:L.label}]))).values()];ui=new SSAUI({maps:[lmap,rmap],masterMap:lmap,container:shell,layers,currentLayer:()=>lk,setLayer:k=>{if(left.layers[k]){lk=k;refresh()}},fit:()=>lmap.fitBounds(left.bounds,{padding:50,maxZoom:19}),back:()=>location.href=`/portal/${client}/${pid}/`,fileNameBase:`${data.name}-${p.name}-compare`.replace(/\s+/g,'-')})});
+ Promise.all([new Promise(r=>lmap.on('load',r)),new Promise(r=>rmap.on('load',r))]).then(()=>{refresh();lmap.fitBounds(left.bounds,{padding:50,maxZoom:19});clip();ui=new SSAUI({maps:[lmap,rmap],masterMap:lmap,container:shell,showLayers:false,layers:[],currentLayer:()=>lk,setLayer:()=>{},fit:()=>lmap.fitBounds(left.bounds,{padding:50,maxZoom:19}),back:()=>location.href=`/portal/${client}/${pid}/`,fileNameBase:`${data.name}-${p.name}-compare`.replace(/\s+/g,'-')})});
  handle.onmousedown=e=>{drag=true;e.preventDefault()};addEventListener('mousemove',e=>{if(drag){x=e.clientX;clip()}});addEventListener('mouseup',()=>drag=false);
 })();
 </script></body></html>

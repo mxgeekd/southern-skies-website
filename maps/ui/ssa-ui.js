@@ -19,7 +19,7 @@ class SSAUI{
   this.maps=o.maps||(o.map?[o.map]:[]);
   this.master=o.masterMap||this.maps[0];
   this.container=o.container||this.master.getContainer();
-  this.layers=o.layers||[];
+  this.layers=o.layers||[];this.layersDisabled=o.showLayers===false;
   this.current=o.currentLayer||(()=>null);
   this.setLayer=o.setLayer||(()=>{});
   this.setBase=o.setBase||(()=>{});
@@ -48,11 +48,11 @@ class SSAUI{
 
   const back=document.createElement('button');back.className='ssa-back';back.innerHTML='<span>←</span>Back';back.onclick=()=>this.back();this.container.appendChild(back);
 
-  const rail=document.createElement('div');rail.className='ssa-rail';rail.innerHTML='<button data-r="layers"><span class="ico">▱</span>Layers</button><button data-r="tools"><span class="ico">⌁</span>Use<br>Tools</button>';this.container.appendChild(rail);this.rail=rail;
+  const rail=document.createElement('div');rail.className='ssa-rail';rail.innerHTML=(this.layersDisabled?'':'<button data-r="layers"><span class="ico">▱</span>Layers</button>')+'<button data-r="tools"><span class="ico">⌁</span>Use<br>Tools</button>';this.container.appendChild(rail);this.rail=rail;
 
   const panel=document.createElement('div');panel.className='ssa-panel hidden';panel.innerHTML='<div class="ssa-head"><span id="ssaTitle"></span><button class="ssa-close">×</button></div><div id="ssaBody"></div>';this.container.appendChild(panel);this.panel=panel;
   panel.querySelector('.ssa-close').onclick=()=>this.close();
-  rail.querySelector('[data-r=layers]').onclick=()=>this.openLayers();
+  rail.querySelector('[data-r=layers]')?.addEventListener('click',()=>this.openLayers());
   rail.querySelector('[data-r=tools]').onclick=()=>this.openTools();
 
   const legend=document.createElement('div');legend.className='ssa-legend hidden';legend.setAttribute('aria-live','polite');this.container.appendChild(legend);this.legend=legend;
