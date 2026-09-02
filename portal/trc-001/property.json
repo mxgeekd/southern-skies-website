@@ -41,7 +41,12 @@
               "scheme": "tms",
               "minzoom": 14,
               "maxzoom": 20,
-              "opacity": 0.65
+              "opacity": 0.4,
+              "range": [
+                141.284,
+                319.536
+              ],
+              "units": "m"
             }
           }
         }

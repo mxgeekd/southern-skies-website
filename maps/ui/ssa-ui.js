@@ -1,7 +1,7 @@
 
 (function(global){
 'use strict';
-const VERSION='7.0.7';
+const VERSION='7.0.8';
 global.SSA_MAP_BUILD=VERSION;
 const INDEX_INFO=Object.freeze({
  ndvi:{name:'NDVI',subtitle:'Vegetation vigour index',description:'Highlights relative vegetation vigour and biomass. Higher values generally indicate denser or more actively growing vegetation.',signed:true},
@@ -9,7 +9,7 @@ const INDEX_INFO=Object.freeze({
  ndre:{name:'NDRE',subtitle:'Red-edge vegetation response',description:'Uses the red-edge band and is useful for looking at chlorophyll and crop stress in denser canopy.',signed:false},
  osavi:{name:'OSAVI',subtitle:'Soil-adjusted vegetation response',description:'Reduces visible-soil background influence when assessing vegetation condition.',signed:false},
  lci:{name:'LCI',subtitle:'Leaf chlorophyll indicator',description:'Used as a relative indicator of leaf chlorophyll response.',signed:false},
- hillshade:{name:'Hillshade',subtitle:'Terrain shaded relief',description:'Shaded relief derived from the survey ground-elevation model. Use it to interpret ridges, hollows and drainage patterns.',gradient:false}
+ hillshade:{name:'Hillshade',subtitle:'Colourised terrain relief',description:'Elevation colour and terrain shading derived from the survey ground-elevation model, displayed over RGB imagery.',gradient:'elevation'}
 });
 
 function load(src){return new Promise((ok,bad)=>{if(document.querySelector(`script[data-ssa="${src}"]`))return ok();const s=document.createElement('script');s.src=src;s.dataset.ssa=src;s.onload=ok;s.onerror=bad;document.head.appendChild(s)})}
@@ -81,7 +81,7 @@ class SSAUI{
   const desc=document.createElement('div');desc.className='ssa-legend-desc';desc.textContent=x.description;
   const parts=[head,desc];
   if(x.gradient!==false){
-   const gradient=document.createElement('div');gradient.className='ssa-gradient';
+   const gradient=document.createElement('div');gradient.className='ssa-gradient'+(x.gradient==='elevation'?' elevation':'');
    const ticks=document.createElement('div');ticks.className='ssa-ticks';
    (x.signed?['-1','0','0.4','0.7','1']:['Lower','Higher']).forEach(v=>{const span=document.createElement('span');span.textContent=v;ticks.appendChild(span)});
    parts.push(gradient,ticks);
