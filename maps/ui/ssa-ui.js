@@ -1,14 +1,15 @@
 
 (function(global){
 'use strict';
-const VERSION='7.0.6';
+const VERSION='7.0.7';
 global.SSA_MAP_BUILD=VERSION;
 const INDEX_INFO=Object.freeze({
  ndvi:{name:'NDVI',subtitle:'Vegetation vigour index',description:'Highlights relative vegetation vigour and biomass. Higher values generally indicate denser or more actively growing vegetation.',signed:true},
  gndvi:{name:'GNDVI',subtitle:'Green chlorophyll / canopy response',description:'More sensitive to green reflectance and commonly used as a chlorophyll and canopy-response indicator.',signed:true},
  ndre:{name:'NDRE',subtitle:'Red-edge vegetation response',description:'Uses the red-edge band and is useful for looking at chlorophyll and crop stress in denser canopy.',signed:false},
  osavi:{name:'OSAVI',subtitle:'Soil-adjusted vegetation response',description:'Reduces visible-soil background influence when assessing vegetation condition.',signed:false},
- lci:{name:'LCI',subtitle:'Leaf chlorophyll indicator',description:'Used as a relative indicator of leaf chlorophyll response.',signed:false}
+ lci:{name:'LCI',subtitle:'Leaf chlorophyll indicator',description:'Used as a relative indicator of leaf chlorophyll response.',signed:false},
+ hillshade:{name:'Hillshade',subtitle:'Terrain shaded relief',description:'Shaded relief derived from the survey ground-elevation model. Use it to interpret ridges, hollows and drainage patterns.',gradient:false}
 });
 
 function load(src){return new Promise((ok,bad)=>{if(document.querySelector(`script[data-ssa="${src}"]`))return ok();const s=document.createElement('script');s.src=src;s.dataset.ssa=src;s.onload=ok;s.onerror=bad;document.head.appendChild(s)})}
@@ -78,10 +79,14 @@ class SSAUI{
   const title=document.createElement('span');title.textContent=x.name;
   const sub=document.createElement('small');sub.textContent=x.subtitle;title.appendChild(document.createElement('br'));title.appendChild(sub);head.appendChild(title);
   const desc=document.createElement('div');desc.className='ssa-legend-desc';desc.textContent=x.description;
-  const gradient=document.createElement('div');gradient.className='ssa-gradient';
-  const ticks=document.createElement('div');ticks.className='ssa-ticks';
-  (x.signed?['-1','0','0.4','0.7','1']:['Lower','Higher']).forEach(v=>{const span=document.createElement('span');span.textContent=v;ticks.appendChild(span)});
-  this.legend.replaceChildren(head,desc,gradient,ticks);this.legend.classList.remove('hidden');
+  const parts=[head,desc];
+  if(x.gradient!==false){
+   const gradient=document.createElement('div');gradient.className='ssa-gradient';
+   const ticks=document.createElement('div');ticks.className='ssa-ticks';
+   (x.signed?['-1','0','0.4','0.7','1']:['Lower','Higher']).forEach(v=>{const span=document.createElement('span');span.textContent=v;ticks.appendChild(span)});
+   parts.push(gradient,ticks);
+  }
+  this.legend.replaceChildren(...parts);this.legend.classList.remove('hidden');
   void flash;
   return x;
  }
