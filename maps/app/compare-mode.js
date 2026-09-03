@@ -8,7 +8,7 @@ const LAYER_INFO={
  rgb:{label:'RGB',description:'True-colour survey imagery'},
  ndvi:{label:'NDVI',description:'Vegetation vigour and biomass',gradient:'vegetation'},
  gndvi:{label:'GNDVI',description:'Green chlorophyll and canopy response',gradient:'vegetation'},
- hillshade:{label:'Surface relief',description:'Relative surface elevation',gradient:'elevation'}
+ hillshade:{label:'Relief map',description:'Relative surface elevation',gradient:'elevation'}
 };
 
 class SSACompareMode{
@@ -46,14 +46,14 @@ class SSACompareMode{
   const rightChoice=single?this.resolveLayer(rightSurvey,'hillshade',true):this.resolveLayer(rightSurvey,leftChoice.layer,leftChoice.layer==='hillshade');
   this.left=this.makeSide('left',normal.propertyId,normal.propertyData,normal.paddock,leftSurvey,{...leftChoice,requestedLayer:single?'rgb':(normal.layer||normal.baseMode)});
   this.right=this.makeSide('right',normal.propertyId,normal.propertyData,normal.paddock,rightSurvey,{...rightChoice,requestedLayer:single?'hillshade':leftChoice.layer});
-  this.active=true;this.onActiveChange(true);this.clip.hidden=false;this.handle.hidden=false;this.dock.hidden=false;this.renderDock();this.layout();
+  this.active=true;this.onActiveChange(true);this.clip.hidden=false;this.handle.hidden=false;this.dock.hidden=false;this.layerStrips.hidden=false;this.renderDock();this.layout();
   await this.ensureRightMap();
   if(!this.active)return;
   this.clearNormal();this.renderSide(this.left);this.renderSide(this.right);this.renderDock();this.layout();this.fitBoth();
  }
  disable(){
   if(!this.active)return;
-  this.active=false;this.clearSide(this.map,'compare-left');if(this.rightMap)this.clearSide(this.rightMap,'compare-right');this.clip.hidden=true;this.handle.hidden=true;this.dock.hidden=true;this.onActiveChange(false);this.restoreNormal();
+  this.active=false;this.clearSide(this.map,'compare-left');if(this.rightMap)this.clearSide(this.rightMap,'compare-right');this.clip.hidden=true;this.handle.hidden=true;this.dock.hidden=true;this.layerStrips.hidden=true;this.onActiveChange(false);this.restoreNormal();
  }
  makeSide(id,propertyId,propertyData,paddock,survey,choice){return{id,propertyId,propertyData,paddockId:paddock.id,paddock,surveyDate:survey.date,survey,layer:choice.layer,requestedLayer:choice.requestedLayer||choice.layer,note:choice.note||''}}
  resolveLayer(survey,preferred,preferRelief=false){
@@ -97,6 +97,15 @@ class SSACompareMode{
   if(info.gradient){const gradient=document.createElement('i');gradient.className=`compare-mini-gradient ${info.gradient}`;legend.appendChild(gradient)}
   return legend;
  }
+ renderLayerStrips(){
+  this.layerStrips.replaceChildren();
+  [this.left,this.right].forEach(side=>{
+   const half=document.createElement('div');half.className=`compare-layer-half compare-layer-${side.id}`;
+   const strip=document.createElement('div');strip.className='compare-layer-options';strip.setAttribute('aria-label',`${side.id==='left'?'Left':'Right'} comparison layer`);
+   this.choices(side).forEach(choice=>{const button=document.createElement('button');button.type='button';button.textContent=choice.label;button.className=side.layer===choice.id?'active':'';button.setAttribute('aria-pressed',String(side.layer===choice.id));button.onclick=()=>this.changeLayer(side,choice.id);strip.appendChild(button)});
+   half.appendChild(strip);this.layerStrips.appendChild(half);
+  });
+ }
  renderDock(){
   this.dock.replaceChildren();
   [this.left,this.right].forEach(side=>{
@@ -105,13 +114,13 @@ class SSACompareMode{
    fields.append(
     this.optionSelect('Property',this.catalog.properties.map(item=>({id:item.id,label:item.name})),side.propertyId,value=>this.changeProperty(side,value)),
     this.optionSelect('Paddock',side.propertyData.paddocks.map(item=>({id:item.id,label:item.name,disabled:!item.surveys?.length})),side.paddockId,value=>this.changePaddock(side,value)),
-    this.optionSelect('Survey date',[...side.paddock.surveys].sort((a,b)=>a.date.localeCompare(b.date)).map(item=>({id:item.date,label:item.dateLabel})),side.surveyDate,value=>this.changeSurvey(side,value)),
-    this.optionSelect('Layer',this.choices(side),side.layer,value=>this.changeLayer(side,value))
+    this.optionSelect('Survey date',[...side.paddock.surveys].sort((a,b)=>a.date.localeCompare(b.date)).map(item=>({id:item.date,label:item.dateLabel})),side.surveyDate,value=>this.changeSurvey(side,value))
    );
    const status=document.createElement('div');status.className='compare-side-status';status.appendChild(this.legend(side));
    if(side.note){const note=document.createElement('em');note.textContent=side.note;status.appendChild(note)}
    card.append(heading,fields,status);this.dock.appendChild(card);
   });
+  this.renderLayerStrips();
   this.layout();
  }
  async changeProperty(side,propertyId){
@@ -138,7 +147,7 @@ class SSACompareMode{
  layout(){
   if(!this.active)return;const rect=this.map.getContainer().getBoundingClientRect(),x=Math.round(rect.width*this.divider);
   this.clip.style.left=`${rect.left+x}px`;this.clip.style.width=`${Math.max(0,rect.width-x)}px`;this.rightContainer.style.left=`${-x}px`;this.rightContainer.style.width=`${rect.width}px`;this.rightContainer.style.height=`${rect.height}px`;
-  this.handle.style.left=`${rect.left+x-1.5}px`;this.handle.style.bottom=`${this.dock.offsetHeight}px`;this.rightMap?.resize();this.sync();
+  this.handle.style.left=`${rect.left+x-1.5}px`;this.handle.style.bottom=`${this.dock.offsetHeight}px`;this.layerStrips.style.bottom=`${this.dock.offsetHeight+10}px`;this.rightMap?.resize();this.sync();
  }
 }
 
