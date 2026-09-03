@@ -36,7 +36,8 @@ class SSACompareMode{
   target.addSource('ssa-regional-terrain',{type:'raster-dem',tiles:[config.tiles],scheme:config.scheme||'xyz',encoding:config.encoding||'mapbox',tileSize:config.tileSize||256,minzoom:config.minzoom,maxzoom:config.maxzoom,bounds:config.bounds,attribution:config.attribution});
  }
  applyTerrain(mode){
-  [this.map,this.rightMap].filter(Boolean).forEach(target=>{this.addTerrainSource(target);target.setTerrain(mode==='3d'&&this.terrainConfig?{source:'ssa-regional-terrain',exaggeration:this.terrainConfig.exaggeration??1}:null)});
+  const is3d=mode==='3d'&&this.terrainConfig;
+  [this.map,this.rightMap].filter(Boolean).forEach(target=>{this.addTerrainSource(target);target.setTerrain(is3d?{source:'ssa-regional-terrain',exaggeration:this.terrainConfig.exaggeration??1}:null);target.setSky(is3d?this.skyConfig:undefined)});
  }
  async enable(){
   if(this.active)return;
