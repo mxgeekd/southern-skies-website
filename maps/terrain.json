@@ -1,0 +1,21 @@
+{
+  "id": "kempsey-5m",
+  "label": "Kempsey regional terrain",
+  "tiles": "https://maps.southernskiesagritech.com.au/terrain/kempsey-5m/{z}/{x}/{y}.png",
+  "scheme": "tms",
+  "encoding": "mapbox",
+  "tileSize": 256,
+  "minzoom": 8,
+  "maxzoom": 15,
+  "exaggeration": 1.0,
+  "bounds": [152.3125342, -31.5307247, 153.3659402, -30.6271087],
+  "sourceProduct": "New South Wales 5 metre Resolution Digital Elevation Model",
+  "provider": "State of New South Wales, Spatial Services",
+  "sourceResolution": "5 metres",
+  "sourceCrs": "EPSG:28356 (GDA94 / MGA zone 56)",
+  "processedCrs": "EPSG:3857 Web Mercator tile matrix",
+  "verticalDatum": "AHD71",
+  "extractionDate": "2026-09-03",
+  "licence": "Creative Commons Attribution 3.0 Australia (source archive metadata)",
+  "attribution": "Elevation &copy; State of New South Wales (Spatial Services, a business unit of the Department of Customer Service NSW), extracted 3 September 2026. For current information go to <a href=\"https://www.spatial.nsw.gov.au/\" target=\"_blank\" rel=\"noopener\">spatial.nsw.gov.au</a>."
+}
