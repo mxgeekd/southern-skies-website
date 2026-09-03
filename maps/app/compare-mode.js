@@ -92,6 +92,13 @@ class SSACompareMode{
   const wrap=document.createElement('label');wrap.className='compare-field';const title=document.createElement('span');title.textContent=label;const select=document.createElement('select');
   values.forEach(item=>{const option=document.createElement('option');option.value=item.id;option.textContent=item.label;option.disabled=item.disabled;select.appendChild(option)});select.value=value;select.onchange=()=>onchange(select.value);wrap.append(title,select);return wrap;
  }
+ historyRange(side){
+  const surveys=[...side.paddock.surveys].sort((a,b)=>a.date.localeCompare(b.date)),index=Math.max(0,surveys.findIndex(item=>item.date===side.surveyDate));
+  const wrap=document.createElement('label');wrap.className='compare-history-range';const caption=document.createElement('span');caption.textContent='Survey date';const output=document.createElement('output');output.textContent=side.survey.dateLabel;
+  const input=document.createElement('input');input.type='range';input.min='0';input.max=String(Math.max(0,surveys.length-1));input.step='1';input.value=String(index);input.disabled=surveys.length===1;input.setAttribute('aria-label',`${side.id==='left'?'Left':'Right'} survey date`);input.setAttribute('aria-valuetext',side.survey.dateLabel);
+  input.oninput=()=>{const survey=surveys[Number(input.value)];if(!survey)return;output.textContent=survey.dateLabel;input.setAttribute('aria-valuetext',survey.dateLabel);this.changeSurvey(side,survey.date,false)};
+  input.onchange=()=>this.renderDock();wrap.append(caption,output,input);return wrap;
+ }
  legend(side){
   const info=LAYER_INFO[side.layer],legend=document.createElement('div');legend.className='compare-side-legend';
   const text=document.createElement('span');text.innerHTML=`<b>${info.label}</b><small>${info.description}</small>`;legend.appendChild(text);
@@ -114,12 +121,11 @@ class SSACompareMode{
    const fields=document.createElement('div');fields.className='compare-fields';
    fields.append(
     this.optionSelect('Property',this.catalog.properties.map(item=>({id:item.id,label:item.name})),side.propertyId,value=>this.changeProperty(side,value)),
-    this.optionSelect('Paddock',side.propertyData.paddocks.map(item=>({id:item.id,label:item.name,disabled:!item.surveys?.length})),side.paddockId,value=>this.changePaddock(side,value)),
-    this.optionSelect('Survey date',[...side.paddock.surveys].sort((a,b)=>a.date.localeCompare(b.date)).map(item=>({id:item.date,label:item.dateLabel})),side.surveyDate,value=>this.changeSurvey(side,value))
+    this.optionSelect('Paddock',side.propertyData.paddocks.map(item=>({id:item.id,label:item.name,disabled:!item.surveys?.length})),side.paddockId,value=>this.changePaddock(side,value))
    );
    const status=document.createElement('div');status.className='compare-side-status';status.appendChild(this.legend(side));
    if(side.note){const note=document.createElement('em');note.textContent=side.note;status.appendChild(note)}
-   card.append(heading,fields,status);this.dock.appendChild(card);
+   card.append(heading,fields,this.historyRange(side),status);this.dock.appendChild(card);
   });
   this.renderLayerStrips();
   this.layout();
@@ -135,20 +141,20 @@ class SSACompareMode{
   const surveys=[...paddock.surveys].sort((a,b)=>a.date.localeCompare(b.date)),survey=surveys[surveys.length-1],choice=this.resolveLayer(survey,side.requestedLayer,side.requestedLayer==='hillshade');
   Object.assign(side,{paddockId,paddock,surveyDate:survey.date,survey,layer:choice.layer,note:choice.note||''});this.renderSide(side);this.renderDock();this.fitBoth();
  }
- changeSurvey(side,date){
+ changeSurvey(side,date,refreshControls=true){
   const survey=side.paddock.surveys.find(item=>item.date===date);if(!survey)return;const choice=this.resolveLayer(survey,side.requestedLayer,side.requestedLayer==='hillshade');
-  Object.assign(side,{surveyDate:survey.date,survey,layer:choice.layer,note:choice.note||''});this.renderSide(side);this.renderDock();this.fitBoth();
+  Object.assign(side,{surveyDate:survey.date,survey,layer:choice.layer,note:choice.note||''});this.renderSide(side);if(refreshControls)this.renderDock();else{this.renderLayerStrips();this.layout()}this.fitBoth();
  }
  changeLayer(side,layer){side.layer=layer;side.requestedLayer=layer;side.note='';this.renderSide(side);this.renderDock()}
  fitBoth(){
   const surveys=[this.left.survey,this.right.survey],west=Math.min(...surveys.map(item=>item.bounds[0][0])),south=Math.min(...surveys.map(item=>item.bounds[0][1])),east=Math.max(...surveys.map(item=>item.bounds[1][0])),north=Math.max(...surveys.map(item=>item.bounds[1][1]));
-  const height=this.map.getContainer().getBoundingClientRect().height,bottom=Math.min(this.dock.offsetHeight+25,Math.max(80,height/2));this.map.fitBounds([[west,south],[east,north]],{padding:{top:70,bottom,left:35,right:35},maxZoom:19,bearing:this.map.getBearing(),pitch:this.map.getPitch()});
+  const height=this.map.getContainer().getBoundingClientRect().height,bottom=Math.min((this.bottomClearance?.()||12)+this.dock.offsetHeight+25,Math.max(80,height/2));this.map.fitBounds([[west,south],[east,north]],{padding:{top:70,bottom,left:35,right:35},maxZoom:19,bearing:this.map.getBearing(),pitch:this.map.getPitch()});
  }
  sync(){if(!this.active||!this.rightLoaded)return;const center=this.map.getCenter();this.rightMap.jumpTo({center:[center.lng,center.lat],zoom:this.map.getZoom(),bearing:this.map.getBearing(),pitch:this.map.getPitch()})}
  layout(){
   if(!this.active)return;const rect=this.map.getContainer().getBoundingClientRect(),x=Math.round(rect.width*this.divider);
   this.clip.style.left=`${rect.left+x}px`;this.clip.style.width=`${Math.max(0,rect.width-x)}px`;this.rightContainer.style.left=`${-x}px`;this.rightContainer.style.width=`${rect.width}px`;this.rightContainer.style.height=`${rect.height}px`;
-  this.handle.style.left=`${rect.left+x-1.5}px`;this.handle.style.bottom=`${this.dock.offsetHeight}px`;this.layerStrips.style.bottom=`${this.dock.offsetHeight+10}px`;this.rightMap?.resize();this.sync();
+  const bottom=this.bottomClearance?.()||12;this.dock.style.bottom=`${bottom}px`;this.handle.style.left=`${rect.left+x-1.5}px`;this.handle.style.bottom=`${bottom}px`;this.layerStrips.style.bottom=`${bottom+this.dock.offsetHeight+10}px`;this.rightMap?.resize();this.sync();
  }
 }
 
