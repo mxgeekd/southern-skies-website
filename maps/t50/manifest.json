@@ -26,7 +26,7 @@
         152.37257156532596,
         -30.809362446278072
       ],
-      "geojson": "/maps/t50/plans/t50-plan-2026-06-22-a/plan.geojson",
+      "geojson": "https://maps.southernskiesagritech.com.au/t50/plans/t50-plan-2026-06-22-a/plan.geojson",
       "plannedSpeedMps": {
         "minimum": 5.6,
         "maximum": 5.6
@@ -36,7 +36,7 @@
         "maximum": 3.0
       },
       "prescription": {
-        "tiles": "/maps/t50/plans/t50-plan-2026-06-22-a/prescription/{z}/{x}/{y}.png",
+        "tiles": "https://maps.southernskiesagritech.com.au/t50/plans/t50-plan-2026-06-22-a/prescription/{z}/{x}/{y}.png",
         "scheme": "tms",
         "tileSize": 256,
         "minzoom": 14,
