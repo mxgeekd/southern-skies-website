@@ -1,0 +1,67 @@
+{
+  "version": 1,
+  "classificationNotice": "PLANNED — EXECUTION UNVERIFIED",
+  "plans": [
+    {
+      "id": "t50-plan-2026-06-22-a",
+      "name": "Paddock 1 + 2 T50 plan",
+      "planDate": "2026-06-22",
+      "operationType": "spray",
+      "classification": "planned-route/application",
+      "status": "PLANNED — EXECUTION UNVERIFIED",
+      "executionVerified": false,
+      "propertyId": "tc-7k4m2q",
+      "paddockId": "paddock-1-2",
+      "bounds": [
+        [
+          152.372306411925,
+          -30.8095843987606
+        ],
+        [
+          152.372832679451,
+          -30.809131230864
+        ]
+      ],
+      "center": [
+        152.37257156532596,
+        -30.809362446278072
+      ],
+      "geojson": "/maps/t50/plans/t50-plan-2026-06-22-a/plan.geojson",
+      "plannedSpeedMps": {
+        "minimum": 5.6,
+        "maximum": 5.6
+      },
+      "plannedHeightM": {
+        "minimum": 3.0,
+        "maximum": 3.0
+      },
+      "prescription": {
+        "tiles": "/maps/t50/plans/t50-plan-2026-06-22-a/prescription/{z}/{x}/{y}.png",
+        "scheme": "tms",
+        "tileSize": 256,
+        "minzoom": 14,
+        "maxzoom": 20,
+        "bounds": [
+          [
+            152.37006530077758,
+            -30.81043688522133
+          ],
+          [
+            152.3737514631259,
+            -30.808017433353996
+          ]
+        ],
+        "opacity": 0.5,
+        "meaning": null,
+        "units": null
+      },
+      "available": {
+        "route": true,
+        "spraySections": true,
+        "prescription": true,
+        "boundary": true,
+        "obstacles": true
+      }
+    }
+  ]
+}

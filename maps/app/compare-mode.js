@@ -50,11 +50,11 @@ class SSACompareMode{
   this.active=true;this.onActiveChange(true);this.clip.hidden=false;this.handle.hidden=false;this.dock.hidden=false;this.layerStrips.hidden=false;this.renderDock();this.layout();
   await this.ensureRightMap();
   if(!this.active)return;
-  this.clearNormal();this.renderSide(this.left);this.renderSide(this.right);this.renderDock();this.layout();this.fitBoth();
+  this.clearNormal();this.renderSide(this.left);this.renderSide(this.right);this.renderDock();this.layout();this.fitBoth();this.onTargetsChange?.();
  }
  disable(){
   if(!this.active)return;
-  this.active=false;this.clearSide(this.map,'compare-left');if(this.rightMap)this.clearSide(this.rightMap,'compare-right');this.clip.hidden=true;this.handle.hidden=true;this.dock.hidden=true;this.layerStrips.hidden=true;this.onActiveChange(false);this.restoreNormal();
+  this.active=false;this.clearSide(this.map,'compare-left');if(this.rightMap)this.clearSide(this.rightMap,'compare-right');this.clip.hidden=true;this.handle.hidden=true;this.dock.hidden=true;this.layerStrips.hidden=true;this.onActiveChange(false);this.restoreNormal();this.onTargetsChange?.();
  }
  makeSide(id,propertyId,propertyData,paddock,survey,choice){return{id,propertyId,propertyData,paddockId:paddock.id,paddock,surveyDate:survey.date,survey,layer:choice.layer,requestedLayer:choice.requestedLayer||choice.layer,note:choice.note||''}}
  resolveLayer(survey,preferred,preferRelief=false){
@@ -81,11 +81,11 @@ class SSACompareMode{
  renderSide(side){
   const target=side.id==='left'?this.map:this.rightMap,prefix=`compare-${side.id}`;if(!target||!target.isStyleLoaded())return;
   this.clearSide(target,prefix);
-  if(side.layer==='map'||side.layer==='satellite'){this.setBase(target,side.layer);return}
+  if(side.layer==='map'||side.layer==='satellite'){this.setBase(target,side.layer);this.onTargetsChange?.();return}
   this.setBase(target,'satellite');
   const layer=side.survey.layers[side.layer];if(!layer)return;
   if(side.layer==='hillshade'&&side.survey.layers.rgb)this.addRaster(target,`${prefix}-rgb-source`,`${prefix}-rgb`,side.survey.layers.rgb,side.survey,1);
-  this.addRaster(target,`${prefix}-overlay-source`,`${prefix}-overlay`,layer,side.survey,layer.opacity??1);
+  this.addRaster(target,`${prefix}-overlay-source`,`${prefix}-overlay`,layer,side.survey,layer.opacity??1);this.onTargetsChange?.();
  }
  choices(side){return['satellite','map',...LAYER_ORDER.filter(id=>side.survey.layers[id])].map(id=>({id,label:LAYER_INFO[id].label}))}
  optionSelect(label,values,value,onchange){
