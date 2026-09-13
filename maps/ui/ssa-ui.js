@@ -1,7 +1,7 @@
 
 (function(global){
 'use strict';
-const VERSION='7.0.9';
+const VERSION='7.0.18';
 global.SSA_MAP_BUILD=VERSION;
 const INDEX_INFO=Object.freeze({
  ndvi:{name:'NDVI',subtitle:'Vegetation vigour index',description:'Highlights relative vegetation vigour and biomass. Higher values generally indicate denser or more actively growing vegetation.',signed:true},
@@ -26,8 +26,9 @@ class SSAUI{
   this.setBase=o.setBase||(()=>{});
   this.fit=o.fit||(()=>{});
   this.back=o.back||(()=>history.back());
+  this.toolsMount=o.toolsMount||null;
   this.fileNameBase=o.fileNameBase||'map-layer';
-  this.features=[];this.coords=[];this.mode=null;this.shaded=true;
+  this.features=[];this.coords=[];this.mode=null;this.shaded=true;this.legendCollapsed=false;
   this.init();
  }
  async init(){
@@ -78,21 +79,31 @@ class SSAUI{
   const head=document.createElement('div');head.className='ssa-legend-head';
   const title=document.createElement('span');title.textContent=x.name;
   const sub=document.createElement('small');sub.textContent=x.subtitle;title.appendChild(document.createElement('br'));title.appendChild(sub);head.appendChild(title);
+  const toggle=document.createElement('button');toggle.className='ssa-legend-toggle';toggle.type='button';head.appendChild(toggle);
   const desc=document.createElement('div');desc.className='ssa-legend-desc';desc.textContent=x.description;
-  const parts=[head,desc];
+  const content=document.createElement('div');content.className='ssa-legend-content';content.appendChild(desc);
   if(x.gradient!==false){
    const gradient=document.createElement('div');gradient.className='ssa-gradient'+(x.gradient==='elevation'?' elevation':'');
    const ticks=document.createElement('div');ticks.className='ssa-ticks';
    (x.ticks||(x.signed?['-1','0','0.4','0.7','1']:['Lower','Higher'])).forEach(v=>{const span=document.createElement('span');span.textContent=v;ticks.appendChild(span)});
-   parts.push(gradient,ticks);
+   content.append(gradient,ticks);
   }
-  this.legend.replaceChildren(...parts);this.legend.classList.remove('hidden');
+  if(key!=='hillshade'){
+   const learn=document.createElement('a');learn.className='ssa-legend-link';learn.href='https://researchoutput.csu.edu.au/en/publications/the-ultimate-guide-to-crop-monitoring-in-precision-agriculture/';learn.target='_blank';learn.rel='noopener noreferrer';learn.textContent='Learn about vegetation indices ↗';content.appendChild(learn);
+  }
+  toggle.onclick=()=>{this.legendCollapsed=!this.legendCollapsed;this.updateLegendState()};
+  this.legend.replaceChildren(head,content);this.legend.classList.remove('hidden');this.updateLegendState();
   void flash;
   return x;
  }
+ updateLegendState(){
+  if(!this.legend)return;
+  this.legend.classList.toggle('collapsed',this.legendCollapsed);
+  const toggle=this.legend.querySelector('.ssa-legend-toggle');if(!toggle)return;
+  toggle.textContent=this.legendCollapsed?'i':'−';toggle.setAttribute('aria-expanded',String(!this.legendCollapsed));toggle.setAttribute('aria-label',this.legendCollapsed?'Expand map legend':'Collapse map legend');toggle.title=toggle.getAttribute('aria-label');
+ }
  openTools(){
-  this.active('tools');
-  this.panelSet('Measure',`<div class="ssa-pane">
+  const html=`<div class="ssa-pane">
    <div class="ssa-grid">
     <button class="ssa-tool" data-tool="pathpoly"><span class="box">⌁</span>Path / Polygon</button>
     <button class="ssa-tool" data-tool="radius"><span class="box">◉</span>Radius</button>
@@ -105,20 +116,23 @@ class SSAUI{
     <button class="danger" data-act="clear">Clear</button>
    </div>
    <div class="ssa-readout">Choose a measurement tool.</div>
-  </div>`);
-  this.panel.querySelectorAll('[data-tool]').forEach(b=>b.onclick=()=>{
+  </div>`;
+  if(this.toolsMount){this.toolsMount.innerHTML=html;this.toolsRoot=this.toolsMount}
+  else{this.active('tools');this.panelSet('Measure',html);this.toolsRoot=this.panel}
+  const root=this.toolsRoot;
+  root.querySelectorAll('[data-tool]').forEach(b=>b.onclick=()=>{
    this.mode=b.dataset.tool;this.coords=[];
-   this.panel.querySelectorAll('[data-tool]').forEach(x=>x.classList.toggle('active',x===b));
+   root.querySelectorAll('[data-tool]').forEach(x=>x.classList.toggle('active',x===b));
    this.renderOverlay();
    const r=this.readout();if(r)r.textContent=this.mode==='radius'?'Click the centre, then the edge.':'Click points to draw a path. Close polygon when you want an area.';
   });
-  this.panel.querySelector('[data-act=finish]').onclick=()=>this.finishPath();
-  this.panel.querySelector('[data-act=closepoly]').onclick=()=>this.closePolygon();
-  this.panel.querySelector('[data-act=undo]').onclick=()=>this.undo();
-  this.panel.querySelector('[data-act=clear]').onclick=()=>this.clear();
-  this.panel.querySelector('[data-act=shade]').onclick=e=>{this.shaded=!this.shaded;e.currentTarget.textContent='Shading: '+(this.shaded?'On':'Off');this.renderOverlay()};
+  root.querySelector('[data-act=finish]').onclick=()=>this.finishPath();
+  root.querySelector('[data-act=closepoly]').onclick=()=>this.closePolygon();
+  root.querySelector('[data-act=undo]').onclick=()=>this.undo();
+  root.querySelector('[data-act=clear]').onclick=()=>this.clear();
+  root.querySelector('[data-act=shade]').onclick=e=>{this.shaded=!this.shaded;e.currentTarget.textContent='Shading: '+(this.shaded?'On':'Off');this.renderOverlay()};
  }
- readout(){return this.panel.querySelector('.ssa-readout')}
+ readout(){return (this.toolsRoot||this.panel).querySelector('.ssa-readout')}
  click(e){
   if(!this.mode)return;
   this.coords.push([e.lngLat.lng,e.lngLat.lat]);
