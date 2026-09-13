@@ -1,0 +1,6 @@
+/maps/view /maps/app/ 301
+/maps/view/ /maps/app/ 301
+/maps/compare /maps/app/ 301
+/maps/compare/ /maps/app/ 301
+/portal/:property/map /portal/:property/map/ 301
+/portal/:property/map/ /maps/app/index.html 200

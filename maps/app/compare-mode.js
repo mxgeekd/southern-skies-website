@@ -41,11 +41,12 @@ class SSACompareMode{
  }
  async enable(){
   if(this.active)return;
-  const normal=this.currentState(),ordered=[...normal.paddock.surveys].sort((a,b)=>a.date.localeCompare(b.date)),index=ordered.findIndex(item=>item.date===normal.survey.date),single=ordered.length===1;
-  const leftSurvey=normal.survey,rightSurvey=single?leftSurvey:ordered[index>0?index-1:Math.min(1,ordered.length-1)];
-  const leftChoice=single?this.resolveLayer(leftSurvey,'rgb'):this.resolveLayer(leftSurvey,normal.layer||normal.baseMode);
+  const normal=this.currentState(),ordered=[...normal.paddock.surveys].sort((a,b)=>a.date.localeCompare(b.date)),requested=this.initialCompare||{},index=ordered.findIndex(item=>item.date===normal.survey.date),single=ordered.length===1;
+  const leftSurvey=ordered.find(item=>item.date===requested.leftDate)||normal.survey,rightSurvey=ordered.find(item=>item.date===requested.rightDate)||(single?leftSurvey:ordered[index>0?index-1:Math.min(1,ordered.length-1)]),requestedLayer=requested.layer||normal.layer||normal.baseMode;
+  const leftChoice=single?this.resolveLayer(leftSurvey,'rgb'):this.resolveLayer(leftSurvey,requestedLayer);
   const rightChoice=single?this.resolveLayer(rightSurvey,'hillshade',true):this.resolveLayer(rightSurvey,leftChoice.layer,leftChoice.layer==='hillshade');
-  this.left=this.makeSide('left',normal.propertyId,normal.propertyData,normal.paddock,leftSurvey,{...leftChoice,requestedLayer:single?'rgb':(normal.layer||normal.baseMode)});
+  this.initialCompare=null;
+  this.left=this.makeSide('left',normal.propertyId,normal.propertyData,normal.paddock,leftSurvey,{...leftChoice,requestedLayer:single?'rgb':requestedLayer});
   this.right=this.makeSide('right',normal.propertyId,normal.propertyData,normal.paddock,rightSurvey,{...rightChoice,requestedLayer:single?'hillshade':leftChoice.layer});
   this.active=true;this.onActiveChange(true);this.clip.hidden=false;this.handle.hidden=false;this.dock.hidden=false;this.layerStrips.hidden=false;this.renderDock();this.layout();
   await this.ensureRightMap();
@@ -119,22 +120,13 @@ class SSACompareMode{
   [this.left,this.right].forEach(side=>{
    const card=document.createElement('section');card.className=`compare-side compare-side-${side.id}`;const heading=document.createElement('div');heading.className='compare-side-heading';heading.textContent=side.id==='left'?'LEFT SIDE':'RIGHT SIDE';
    const fields=document.createElement('div');fields.className='compare-fields';
-   fields.append(
-    this.optionSelect('Property',this.catalog.properties.map(item=>({id:item.id,label:item.name})),side.propertyId,value=>this.changeProperty(side,value)),
-    this.optionSelect('Paddock',side.propertyData.paddocks.map(item=>({id:item.id,label:item.name,disabled:!item.surveys?.length})),side.paddockId,value=>this.changePaddock(side,value))
-   );
+   fields.append(this.optionSelect('Paddock',side.propertyData.paddocks.map(item=>({id:item.id,label:item.name,disabled:!item.surveys?.length})),side.paddockId,value=>this.changePaddock(side,value)));
    const status=document.createElement('div');status.className='compare-side-status';status.appendChild(this.legend(side));
    if(side.note){const note=document.createElement('em');note.textContent=side.note;status.appendChild(note)}
    card.append(heading,fields,this.historyRange(side),status);this.dock.appendChild(card);
   });
   this.renderLayerStrips();
   this.layout();
- }
- async changeProperty(side,propertyId){
-  try{const data=await this.loadProperty(propertyId);if(!this.active)return;const paddock=data.paddocks.find(item=>item.surveys?.length);if(!paddock)throw Error('No surveyed paddocks are available.');
-   const surveys=[...paddock.surveys].sort((a,b)=>a.date.localeCompare(b.date)),survey=surveys[surveys.length-1],choice=this.resolveLayer(survey,side.requestedLayer,side.requestedLayer==='hillshade');
-   Object.assign(side,{propertyId,propertyData:data,paddockId:paddock.id,paddock,surveyDate:survey.date,survey,layer:choice.layer,note:choice.note||''});this.renderSide(side);this.renderDock();this.fitBoth();
-  }catch(error){side.note=`Property could not be loaded — ${error.message}`;this.renderDock()}
  }
  changePaddock(side,paddockId){
   const paddock=side.propertyData.paddocks.find(item=>item.id===paddockId&&item.surveys?.length);if(!paddock)return;
