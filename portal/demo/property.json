@@ -8,7 +8,50 @@
       "id": "pd1",
       "name": "Paddock 1",
       "description": "Demo Paddock to display web features",
-      "surveys": []
+      "surveys": [
+        {
+          "date": "2026-06-22",
+          "dateLabel": "22 Jun 2026",
+          "type": "RGBMS",
+          "bounds": [
+            [
+              152.3700646,
+              -30.8104371
+            ],
+            [
+              152.3737519,
+              -30.8080174
+            ]
+          ],
+          "center": [
+            152.3719082,
+            -30.8092273
+          ],
+          "layers": {
+            "rgb": {
+              "label": "RGB",
+              "tiles": "https://maps.southernskiesagritech.com.au/demo/pd1/2026-06-22/rgb/{z}/{x}/{y}.png",
+              "scheme": "tms",
+              "minzoom": 14,
+              "maxzoom": 20
+            },
+            "ndvi": {
+              "label": "NDVI",
+              "tiles": "https://maps.southernskiesagritech.com.au/demo/pd1/2026-06-22/ndvi/{z}/{x}/{y}.png",
+              "scheme": "tms",
+              "minzoom": 14,
+              "maxzoom": 20
+            },
+            "gndvi": {
+              "label": "GNDVI",
+              "tiles": "https://maps.southernskiesagritech.com.au/demo/pd1/2026-06-22/gndvi/{z}/{x}/{y}.png",
+              "scheme": "tms",
+              "minzoom": 14,
+              "maxzoom": 20
+            }
+          }
+        }
+      ]
     }
   ]
 }
