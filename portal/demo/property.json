@@ -3,5 +3,12 @@
   "name": "Demo",
   "subtitle": "Property imagery and survey history",
   "storagePrefix": "demo",
-  "paddocks": []
+  "paddocks": [
+    {
+      "id": "pd1",
+      "name": "Paddock 1",
+      "description": "Demo Paddock to display web features",
+      "surveys": []
+    }
+  ]
 }
