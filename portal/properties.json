@@ -1,6 +1,10 @@
 {
   "properties": [
     {
+      "id": "demo",
+      "name": "Demo"
+    },
+    {
       "id": "trc-001",
       "name": "Lot8/12 Toorumbee Creek"
     },
