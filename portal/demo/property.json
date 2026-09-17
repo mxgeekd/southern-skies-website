@@ -134,6 +134,48 @@
               "maxzoom": 20
             }
           }
+        },
+        {
+          "date": "2026-09-08",
+          "dateLabel": "8 Sep 2026",
+          "type": "RGBMS",
+          "bounds": [
+            [
+              152.3702297,
+              -30.8109926
+            ],
+            [
+              152.3764658,
+              -30.8081882
+            ]
+          ],
+          "center": [
+            152.3733478,
+            -30.8095904
+          ],
+          "layers": {
+            "rgb": {
+              "label": "RGB",
+              "tiles": "https://maps.southernskiesagritech.com.au/demo/pd1/2026-09-08/rgb/{z}/{x}/{y}.png",
+              "scheme": "tms",
+              "minzoom": 14,
+              "maxzoom": 20
+            },
+            "ndvi": {
+              "label": "NDVI",
+              "tiles": "https://maps.southernskiesagritech.com.au/demo/pd1/2026-09-08/ndvi/{z}/{x}/{y}.png",
+              "scheme": "tms",
+              "minzoom": 14,
+              "maxzoom": 20
+            },
+            "gndvi": {
+              "label": "GNDVI",
+              "tiles": "https://maps.southernskiesagritech.com.au/demo/pd1/2026-09-08/gndvi/{z}/{x}/{y}.png",
+              "scheme": "tms",
+              "minzoom": 14,
+              "maxzoom": 20
+            }
+          }
         }
       ]
     }
